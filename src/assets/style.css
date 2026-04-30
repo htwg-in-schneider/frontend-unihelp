@@ -1,0 +1,438 @@
+body {
+  font-family: Helvetica, Arial, sans-serif;
+  background-color: #f7f3ed;
+  color: #424242;
+}
+
+.nav-login {
+  border: 2px solid #424242;
+  background-color: transparent;
+  color: #424242;
+  padding: 8px 15px;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.nav-cta {
+  border: 2px solid #424242;
+  background-color: #424242;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.hero {
+  background-color: #09295a;
+  padding: 80px 50px;
+  display: flex;
+  color: white;
+}
+
+.hero-content {
+  width: 50%;
+  padding-right: 50px;
+}
+
+.hero-content h1 {
+  font-size: 45px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.hero-subheading {
+  margin-bottom: 30px;
+  line-height: 1.5;
+}
+
+.search-bar {
+  background-color: white;
+  padding: 5px;
+  border-radius: 5px;
+  display: flex;
+  margin-bottom: 30px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.search-bar input {
+  width: 75%;
+  border: none;
+  padding: 10px;
+  outline: none;
+}
+
+.search-button {
+  width: 25%;
+  background-color: #424242;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.hero-actions {
+  display: flex;
+}
+
+.button-primary {
+  background-color: #424242;
+  color: white;
+  padding: 12px 20px;
+  text-decoration: none;
+  border-radius: 5px;
+  margin-right: 15px;
+  font-weight: bold;
+}
+
+.button-transparent {
+  border: 2px solid white;
+  color: white;
+  padding: 12px 20px;
+  text-decoration: none;
+  border-radius: 5px;
+}
+
+.hero-right {
+  width: 50%;
+}
+
+.hero-info-card {
+  background-color: #214882;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.hero-info-card h3 {
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.hero-stat {
+  background-color: #214882;
+  width: 48%;
+  margin-bottom: 4%;
+  padding: 15px;
+  text-align: center;
+  border-radius: 10px;
+}
+
+.hero-stat-number {
+  font-size: 24px;
+  font-weight: bold;
+  color: #f0c896;
+}
+
+.hero-stat-content {
+  font-size: 20px;
+}
+
+.section {
+  padding: 80px 50px;
+}
+
+.section-label {
+  color: #424242;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.section-title {
+  font-size: 32px;
+  margin-bottom: 15px;
+  color: #424242;
+}
+
+.section-subtitle {
+  margin-bottom: 40px;
+  color: #424242;
+  opacity: 0.7;
+}
+
+.steps {
+  display: flex;
+  justify-content: space-between;
+}
+
+.step {
+  background-color: white;
+  border: 1px solid #cccccc;
+  width: 23%;
+  padding: 30px 20px;
+  border-radius: 10px;
+}
+
+.step-number {
+  font-size: 36px;
+  color: #f0c896;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.step h3 {
+  margin-bottom: 10px;
+}
+
+.step p {
+  color: #424242;
+  font-size: 14px;
+}
+
+.img-text {
+  display: flex;
+  padding: 80px 50px;
+  align-items: center;
+  background-color: white;
+}
+
+.reverse {
+  flex-direction: row-reverse;
+}
+
+.alt-background {
+  background-color: #f7f3ed;
+}
+
+.img-text img {
+  width: 45%;
+  margin-right: 5%;
+  border-radius: 15px;
+}
+
+.reverse img {
+  margin-right: 0;
+  margin-left: 5%;
+}
+
+.img-text-content {
+  width: 50%;
+  padding: 20px 0;
+}
+
+.img-text-content h2 {
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+
+.img-text-content p {
+  margin-bottom: 15px;
+  color: #424242;
+}
+
+.checklist {
+  list-style-type: none;
+  margin-bottom: 30px;
+  padding-left: 0;
+
+}
+
+.checklist li {
+  margin-bottom: 10px;
+  color: #424242;
+}
+
+.checklist li::before {
+  content: "✓ ";
+  color: #424242;
+  font-weight: bold;
+}
+
+.button-register-transparent {
+  border: 2px solid #424242;
+  color: #424242;
+  padding: 10px 20px;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: bold;
+  display: inline-block;
+}
+
+.famous-tutors {
+  background-color: white;
+  padding: 80px 50px;
+}
+
+.tutors-grid {
+  display: flex;
+  justify-content: space-between;
+}
+
+.tutor-card {
+  border: 1px solid #cccccc;
+  width: 31%;
+  background-color: #f7f3ed;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.tutor-card img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  object-position: top 20%;
+}
+
+.tutor-card-body {
+  padding: 20px;
+}
+
+.subject {
+  font-size: 15px;
+  color: #424242;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.tutor-card-body h4 {
+  font-size: 20px;
+  margin-bottom: 5px;
+}
+
+.rating {
+  color: #424242;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.price-tag {
+  color: #424242;
+  font-weight: bold;
+}
+
+.cta-section {
+  background-color: #09295a;
+  padding: 80px 50px;
+  text-align: center;
+  color: white;
+}
+
+.cta-section h2 {
+  font-size: 36px;
+  font-weight: bold;
+}
+
+.cta-section p {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.button-register-white {
+  background-color: white;
+  color: #424242;
+  padding: 12px 25px;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: bold;
+  display: inline-block;
+}
+
+footer {
+  padding: 20px 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-logo {
+  color: #424242;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+footer a {
+  color: #424242;
+  text-decoration: none;
+  margin-left: 20px;
+}
+
+@media (max-width: 767px) {
+  .navbar-brand {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 15px;
+  }
+
+  .navbar-toggler {
+    margin-left: auto;
+  }
+
+  .hero {
+    flex-direction: column;
+    padding: 40px 20px;
+  }
+
+  .hero-content {
+    width: 100%;
+    padding-right: 0;
+    margin-bottom: 40px;
+  }
+
+  .hero-right {
+    width: 100%;
+  }
+
+  .steps {
+    flex-direction: column;
+  }
+
+  .step {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .img-text {
+    flex-direction: column;
+    padding: 40px 20px;
+  }
+
+  .reverse {
+    flex-direction: column;
+  }
+
+  .img-text img {
+    width: 100%;
+    margin: 0 0 30px 0;
+  }
+
+  .img-text-content {
+    width: 100%;
+    padding: 0;
+  }
+
+  .tutors-grid {
+    flex-direction: column;
+  }
+
+  .tutor-card {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .cta-section h2 {
+    font-size: 30px;
+    font-weight: bold;
+  }
+
+  footer {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  footer div {
+    margin-top: 20px;
+  }
+}
