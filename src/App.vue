@@ -1,188 +1,166 @@
 <script setup>
+import { ref } from 'vue';
+import { offers } from './data.js';
+
+const isMenuOpen = ref(false);
+const toggleMenu = () => { isMenuOpen.value = !isMenuOpen.value; };
+const closeMenu = () => { isMenuOpen.value = false; };
+
+const activeDescription = ref("");
+
+function getOffers() {
+  return offers;
+}
+
+function showDetails(description) {
+  activeDescription.value = description;
+}
+
+function closeDetails() {
+  activeDescription.value = "";
+}
 </script>
 
 <template>
-  <nav class="navbar navbar-expand-md px-4 py-3">
-    <div class="container-fluid">
-      <a class="navbar-brand fw-bold fs-4" href="#">UniHelp</a>
+  <div class="app-layout is-offer-page" style="background-color: #f7f4ed; min-height: 100vh;">
+    
+    <nav class="navbar navbar-expand-md px-4 py-3 global-navbar" style="background-color: #f7f4ed;">
+      <div class="container-fluid">
+        <a class="navbar-brand fw-bold fs-4 text-dark text-decoration-none" href="#" @click="closeMenu">UniHelp</a>
 
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#unihelpMenu">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+        <button class="navbar-toggler border-0" type="button" @click="toggleMenu">
+          <span class="navbar-toggler-icon"></span>
+        </button>
 
-      <div class="collapse navbar-collapse justify-content-end" id="unihelpMenu">
-        <ul class="navbar-nav align-items-center text-center">
-          <li class="nav-item"><a class="nav-link" href="#steps">Ablauf</a></li>
-          <li class="nav-item"><a class="nav-link" href="#for-students">Für Studenten</a></li>
-          <li class="nav-item"><a class="nav-link" href="#for-tutors">Tutor werden</a></li>
-          <li class="nav-item ms-md-3 mt-3 mt-md-0"><button class="nav-login">Anmelden</button></li>
-          <li class="nav-item ms-md-2 mt-2 mt-md-0 mb-2 mb-md-0"><button class="nav-cta">Registrieren</button></li>
-        </ul>
-      </div>
-    </div>
-  </nav>
-
-  <section class="hero">
-    <div class="hero-content">
-      <h1>Nachhilfe von Studenten, <br>für Studenten.</h1>
-      <p class="hero-subheading">UniHelp verbindet Kommilitonen, die Unterstützung brauchen, mit denen, die ihr Wissen
-        weitergeben wollen und das an deiner Hochschule.</p>
-
-      <div class="search-bar">
-        <input type="text" placeholder="Modul suchen, z.B. Webtechnologien" />
-        <button class="search-button">Suchen</button>
-      </div>
-
-      <div class="hero-actions">
-        <a href="#" class="button-primary">Jetzt kostenlos starten</a>
-        <a href="#steps" class="button-transparent">Mehr erfahren</a>
-      </div>
-    </div>
-
-    <div class="hero-right">
-      <div class="hero-info-card">
-        <h3>Warum UniHelp?</h3>
-        <p>Alle Tutoren sind Studenten deiner Hochschule. Sie kennen die Prüfungen, die Professoren und den Stoff aus
-          eigener Erfahrung.</p>
-      </div>
-
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <div class="hero-stat-number">12.000+</div>
-          <div class="hero-stat-content">aktive Tutoren</div>
-        </div>
-        <div class="hero-stat">
-          <div class="hero-stat-number">400+</div>
-          <div class="hero-stat-content">Module</div>
-        </div>
-        <div class="hero-stat">
-          <div class="hero-stat-number">236.000+</div>
-          <div class="hero-stat-content">Stunden gebucht</div>
-        </div>
-        <div class="hero-stat">
-          <div class="hero-stat-number">4,8 ★</div>
-          <div class="hero-stat-content">Ø Bewertung</div>
+        <div class="collapse navbar-collapse justify-content-end" :class="{ 'show': isMenuOpen }">
+          <ul class="navbar-nav align-items-center text-center mt-3 mt-md-0 gap-2 ms-auto">
+            <li class="nav-item">
+              <a class="nav-link py-2" href="#" @click="closeMenu">Angebote</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link py-2" href="/#steps" @click="closeMenu">Ablauf</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link py-2" href="/#for-students" @click="closeMenu">Für Studenten</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link py-2" href="/#for-tutors" @click="closeMenu">Tutor werden</a>
+            </li>
+            <li class="nav-item mt-3 mt-md-0 px-3 px-md-0">
+              <button class="btn btn-outline-dark w-100 px-4" @click="closeMenu">Anmelden</button>
+            </li>
+            <li class="nav-item mb-2 mb-md-0 px-3 px-md-0">
+              <button class="btn btn-warning w-100 fw-bold px-4" @click="closeMenu">Registrieren</button>
+            </li>
+          </ul>
         </div>
       </div>
-    </div>
-  </section>
+    </nav>
 
-  <section id="steps" class="section">
-    <p class="section-label">Ablauf</p>
-    <h2 class="section-title">In 4 Schritten zur Nachhilfe</h2>
-    <p class="section-subtitle">Unkompliziert, schnell und direkt und das von der Suche bis zur gebuchten Stunde.</p>
+    <main class="main-content profile-view">
+      <div class="container py-4 content-wrapper-desktop">
 
-    <div class="steps">
-      <div class="step">
-        <div class="step-number">01</div>
-        <h3>Registrieren</h3>
-        <p>Erstelle kostenlos ein Konto mit deiner Hochschul-E-Mail.</p>
+        <div class="search-section mb-4 mt-2 px-1">
+          <div class="text-start mb-4">
+            <h2 class="fw-bold text-dark mb-1">Nachhilfeangebote</h2>
+            <p class="text-muted fs-6 mb-0">Finde die passende Nachhilfe an deiner Hochschule.</p>
+          </div>
+        </div>
+
+        <div v-if="activeDescription" class="mb-4 mx-1 p-3 rounded d-flex justify-content-between align-items-center" style="background-color: #fff3cd; border: 1px solid #ffe69c;">
+          <p class="mb-0 text-dark" style="font-size: 15px;"><strong>Beschreibung zum Angebot:</strong><br>{{ activeDescription }}</p>
+          <button @click="closeDetails" class="btn btn-dark btn-sm ms-3">Schließen</button>
+        </div>
+
+        <div class="row offers-grid px-1">
+          <div v-for="offer in getOffers()" :key="offer.id" class="col-lg-4 col-md-6 mb-3">
+            <div class="card offer-card h-100 text-start">
+              <div class="card-body p-3 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-1 flex-grow-1">
+                  <div>
+                    <h5 class="fw-bold mb-0 text-dark" style="font-size: 16px;">{{ offer.module }}</h5>
+                    <p class="text-muted small mt-1 mb-1">{{ offer.course }} ({{ offer.university }})</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <p class="mb-3 fw-bold text-dark" style="font-size: 15px;">{{ offer.price }} €/Std.</p>
+                  <div class="mt-auto d-flex flex-column gap-2">
+                    <button @click="showDetails(offer.description)" class="btn-yellow-solid w-100">Details</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
-      <div class="step">
-        <div class="step-number">02</div>
-        <h3>Angebot finden</h3>
-        <p>Durchsuche Angebote nach Hochschule, Studiengang, Modul und Preis.</p>
-      </div>
-      <div class="step">
-        <div class="step-number">03</div>
-        <h3>Termin buchen</h3>
-        <p>Wähle Datum und Uhrzeit direkt auf der Plattform und schreibe dem Tutor optional eine Nachricht.</p>
-      </div>
-      <div class="step">
-        <div class="step-number">04</div>
-        <h3>Lernen & zahlen</h3>
-        <p>Nach der Stunde zahlst du bequem per PayPal oder BitCoin.</p>
-      </div>
-    </div>
-  </section>
+    </main>
 
-  <section id="for-students" class="img-text">
-    <img src="./assets/for-students.jpg" alt="Studenten lernen und lachen" />
-    <div class="img-text-content">
-      <p class="section-label">Für Studenten</p>
-      <h2>Finde die passende Nachhilfe für dein Modul</h2>
-      <p>Du kämpfst dich durch Datenbanken 1 oder Software Engineering und das Lehrangebot allein reicht nicht? Auf
-        UniHelp findest du Kommilitonen, die genau das Fach kennen, in dem du Unterstützung brauchst.</p>
-      <ul class="checklist">
-        <li>Nach Studiengang, Modul, Preis und Sprache filtern</li>
-        <li>Bewertungen anderer Studenten lesen</li>
-        <li>Termin und Nachricht direkt an den Tutor</li>
-        <li>Sicher und einfach bezahlen</li>
-      </ul>
-      <a href="#" class="button-register-transparent">Jetzt Nachhilfe finden</a>
-    </div>
-  </section>
-
-  <section id="for-tutors" class="img-text reverse alt-background">
-    <img src="./assets/for-tutors.jpg" alt="Student erklärt anderem Studenten etwas im Code" />
-    <div class="img-text-content">
-      <p class="section-label">Tutor werden</p>
-      <h2>Gib dein Wissen weiter und verdiene dabei Geld</h2>
-      <p>Du bist fit in deinem Fach und möchtest anderen Studenten helfen? Als Tutor auf UniHelp erstellst du eigene
-        Angebote, legst deinen Preis fest und bestimmst selbst, wann du verfügbar bist.</p>
-      <ul class="checklist">
-        <li>Eigenes Angebot in wenigen Minuten erstellen</li>
-        <li>Zeiten und Preis selbst festlegen</li>
-        <li>Nebeneinkommen durch Hilfe verdienen</li>
-        <li>Bewertungen sammeln und Profil aufbauen</li>
-      </ul>
-      <a href="#" class="button-register-transparent">Als Tutor starten</a>
-    </div>
-  </section>
-
-  <section class="famous-tutors">
-    <p class="section-label">Bekannte Tutoren</p>
-    <h2 class="section-title">Diese Tutoren unterstützen Studenten</h2>
-
-    <div class="tutors-grid">
-      <div class="tutor-card">
-        <img src="./assets/natascha-l-tutor.jpg" alt="Natascha" />
-        <div class="tutor-card-body">
-          <p class="subject">Datenbank- und Informationssysteme 1</p>
-          <h4>Natascha L.</h4>
-          <p class="rating">★★★★★ (62 Bew.)</p>
-          <p class="price-tag">ab 15 €/Std.</p>
+    <footer class="site-footer border-top py-4 mt-auto" style="background-color: #f7f4ed;">
+      <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center">
+        <div class="fw-bold fs-5 mb-2 mb-md-0 text-dark">UniHelp 2026</div>
+        
+        <div class="text-dark">
+          <a href="#" class="text-decoration-none text-dark opacity-75">Impressum</a>
+          <a href="#" class="text-decoration-none text-dark opacity-75">Datenschutz</a>
+          <a href="#" class="text-decoration-none text-dark opacity-75">Kontakt</a>
         </div>
       </div>
+    </footer>
 
-      <div class="tutor-card">
-        <img src="./assets/markus-f-tutor.jpg" alt="Markus" />
-        <div class="tutor-card-body">
-          <p class="subject">Mathematik für Wirtschaftsinformatik 1 & 2</p>
-          <h4>Markus F.</h4>
-          <p class="rating">★★★★★ (50 Bew.)</p>
-          <p class="price-tag">ab 12 €/Std.</p>
-        </div>
-      </div>
-
-      <div class="tutor-card">
-        <img src="./assets/lena-k-tutor.jpg" alt="Lena" />
-        <div class="tutor-card-body">
-          <p class="subject">BWL & Statistik</p>
-          <h4>Lena K.</h4>
-          <p class="rating">★★★★☆ (29 Bew.)</p>
-          <p class="price-tag">ab 10 €/Std.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="cta-section">
-    <h2>Bereit loszulegen?</h2>
-    <p>Registriere dich kostenlos und finde noch heute die passende Nachhilfe oder werde selbst Tutor.</p>
-    <br>
-    <a href="#" class="button-register-white">Kostenlos registrieren</a>
-  </section>
-
-  <footer>
-    <div class="footer-logo">UniHelp 2026</div>
-    <div>
-      <a href="#">Impressum</a>
-      <a href="#">Datenschutz</a>
-      <a href="#">Kontakt</a>
-    </div>
-  </footer>
+  </div>
 </template>
 
 <style scoped>
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.main-content {
+  flex: 1;
+  padding-bottom: 0; 
+}
+
+.content-wrapper-desktop {
+  max-width: 850px;
+  margin: 0 auto;
+}
+
+.offer-card {
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
+  background-color: #fff;
+  transition: transform 0.2s, opacity 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.btn-yellow-solid {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  color: white;
+  background-color: #d4a218;
+  transition: opacity 0.2s;
+}
+
+.btn-yellow-solid:hover {
+  opacity: 0.7;
+}
+
+@media (max-width: 767px) {
+  .navbar-collapse {
+    background-color: #f7f4ed;
+    border-top: 1px solid #e0dcd5;
+    padding-top: 15px;
+    padding-bottom: 15px;
+  }
+}
 </style>
