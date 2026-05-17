@@ -1,6 +1,17 @@
 <script setup>
-const isAppPage = true; 
-const isFormMode = false;
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+
+const isAppPage = computed(() => {
+  const paths = ['/angebote', '/buchungen', '/nachrichten', '/profil'];
+  return paths.includes(route.path);
+});
+
+const isFormMode = computed(() => {
+  return route.query.view === 'form';
+});
 </script>
 
 <template>

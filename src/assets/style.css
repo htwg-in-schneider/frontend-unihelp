@@ -1,3 +1,13 @@
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+}
+
 body {
   font-family: Helvetica, Arial, sans-serif;
   background-color: #f7f3ed;
@@ -218,7 +228,6 @@ body {
   list-style-type: none;
   margin-bottom: 30px;
   padding-left: 0;
-
 }
 
 .checklist li {
@@ -321,6 +330,29 @@ body {
   display: inline-block;
 }
 
+.button-hero-yellow {
+  background-color: #fcdb39; 
+  color: #424242 !important; 
+  padding: 12px 25px;
+  text-decoration: none;
+  border-radius: 5px;
+  margin-right: 15px;
+  font-weight: bold;
+  display: inline-block;
+  transition: opacity 0.2s;
+  border: none;
+  text-align: center;
+}
+
+.button-hero-yellow:hover {
+  opacity: 0.85;
+  color: #424242;
+}
+
+.profile-avatar-large {
+  flex-shrink: 0;
+}
+
 @media (max-width: 767px) {
   .hero {
     flex-direction: column;
@@ -334,6 +366,27 @@ body {
   }
 
   .hero-right {
+    width: 100%;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .button-hero-yellow {
+    flex: 1;
+    margin: 0;
+    padding: 12px 5px;
+    font-size: 14px;
+  }
+
+  .tutor-card img {
+    display: block !important;
+    min-height: 200px;
     width: 100%;
   }
 

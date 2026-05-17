@@ -1,6 +1,4 @@
 <script setup>
-import Button from './Button.vue';
-
 defineProps({
   offer: {
     type: Object,
@@ -22,9 +20,9 @@ defineProps({
       <div>
         <p class="mb-3 fw-bold text-dark" style="font-size: 15px;">{{ offer.price }} €/Std.</p>
         <div class="mt-auto d-flex flex-column gap-2">
-          <Button customClass="btn-yellow-solid w-100" @click="$emit('showDetails', offer.description)">
-            Details
-          </Button>
+          <router-link :to="`/angebot/${offer.id}`" class="btn-yellow-solid w-100 text-decoration-none">
+            Details ansehen
+          </router-link>
         </div>
       </div>
     </div>
@@ -43,5 +41,23 @@ defineProps({
 .offer-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.btn-yellow-solid {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  color: white;
+  background-color: #d4a218;
+  transition: opacity 0.2s;
+}
+
+.btn-yellow-solid:hover {
+  opacity: 0.9;
 }
 </style>

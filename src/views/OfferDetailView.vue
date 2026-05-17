@@ -1,0 +1,156 @@
+<script setup>
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+import { offers } from '../data.js';
+
+const route = useRoute();
+
+const offer = computed(() => {
+  return offers.find(o => String(o.id) === String(route.params.id)) || null;
+});
+</script>
+
+<template>
+  <div class="container py-4 content-wrapper-desktop">
+    
+    <div v-if="offer" class="text-start mobile-card">
+      
+      <div class="d-flex align-items-center mb-4">
+        <div class="profile-avatar-large me-3">NL</div>
+        <div>
+          <h2 class="h4 mb-1 fw-bold text-dark">Natascha Lang</h2>
+          <p class="mb-1 text-muted fw-bold" style="font-size: 14px;">
+            Wirtschaftsinformatik, 6 Sem. HTWG
+          </p>
+          <p class="mb-0 text-warning" style="font-size: 14px;">
+            ★★★★★ <span class="text-dark fw-bold ms-1">4,9</span> <span class="text-muted">(62 Bew.)</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="modul-box mb-4 p-3 bg-white">
+        <div class="yellow-label mb-1">MODUL</div>
+        <div class="fw-bold fs-5 text-dark">{{ offer.module }}</div>
+        <div class="text-muted small mt-1">{{ offer.course }}</div>
+      </div>
+
+      <div class="mb-4">
+        <div class="yellow-label mb-1">BESCHREIBUNG</div>
+        <p class="lh-sm fs-6 text-dark">{{ offer.description }}</p>
+      </div>
+
+      <div class="mb-4">
+        <div class="yellow-label mb-1">VERFÜGBARKEIT</div>
+        <p class="fw-bold text-dark">{{ offer.availableTimes }} · {{ offer.format }}</p>
+      </div>
+
+      <div class="price-book-box mb-3 d-flex justify-content-between align-items-center p-3 bg-white">
+        <div>
+          <div class="yellow-label mb-1">PREIS</div>
+          <div class="fw-bold fs-3 text-dark">{{ offer.price }} €/Std.</div>
+        </div>
+        <button class="btn-yellow-main px-4 m-0 text-dark">Buchen</button>
+      </div>
+
+      <button class="btn-message-outline w-100 mb-3 text-dark">Nachricht senden</button>
+      
+      <div class="text-center mt-2 pb-2">
+        <a href="#" class="report-link">⚠ Angebot melden</a>
+      </div>
+
+    </div>
+    
+    <div v-else class="text-center py-5">
+      <h3 class="mb-3 fw-bold text-dark">Angebot wurde nicht gefunden.</h3>
+      <router-link to="/angebote" class="btn btn-outline-dark px-4 py-2 fw-bold">Zurück zur Übersicht</router-link>
+    </div>
+
+  </div>
+</template>
+
+<style scoped>
+.content-wrapper-desktop {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.profile-avatar-large {
+  width: 70px;
+  height: 70px;
+  flex-shrink: 0;
+  background-color: #dcdcdc;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+}
+
+.modul-box,
+.price-book-box {
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+}
+
+.yellow-label {
+  color: #d4a218;
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-yellow-main {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 16px;
+  background-color: #fcdb39;
+  border: 1px solid #d4b82d;
+  transition: background-color 0.2s;
+}
+
+.btn-yellow-main:hover {
+  background-color: #f0ce2b;
+}
+
+.btn-message-outline {
+  height: 44px;
+  background-color: white;
+  border: 1px solid #b0b0b0;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 15px;
+  transition: background-color 0.2s;
+}
+
+.btn-message-outline:hover {
+  background-color: #f0f0f0;
+}
+
+.report-link {
+  color: #a81c1c; 
+  font-size: 13px;
+  font-weight: bold;
+  text-decoration: underline !important;
+}
+
+.report-link:hover {
+  color: #801515;
+}
+
+@media (max-width: 767px) {
+  .mobile-card {
+    background-color: white;
+    border: 1px solid #e0dcd5;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+  }
+}
+</style>
