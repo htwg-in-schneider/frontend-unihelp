@@ -1,19 +1,49 @@
 <script setup>
-import { computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { offers } from '../data.js';
 
 const route = useRoute();
+const url = 'https://dummyjson.com/products';
 
-const offer = computed(() => {
-  return offers.find(o => String(o.id) === String(route.params.id)) || null;
-});
+const offer = ref(null); 
+const isLoading = ref(true);
+
+onMounted(async () => fetchOffer());
+
+async function fetchOffer() {
+  try {
+    const response = await fetch(`${url}/${route.params.id}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const dummyproduct = await response.json();
+
+    offer.value = {
+      id: dummyproduct.id,
+      university: "HTWG Konstanz",
+      course: "Wirtschaftsinformatik",
+      module: dummyproduct.title,
+      price: Math.round(dummyproduct.price),
+      description: dummyproduct.description,
+      availableTimes: "Auf Anfrage",
+      format: "Online & Präsenz"
+    };
+  } catch (error) {
+    console.error('Fehler beim Laden des Angebots:', error);
+  } finally {
+    isLoading.value = false;
+  }
+}
 </script>
 
 <template>
   <div class="container py-4 content-wrapper-desktop">
     
-    <div v-if="offer" class="text-start mobile-card">
+    <div v-if="isLoading" class="text-center py-5">
+      <p class="text-muted">Angebot wird geladen...</p>
+    </div>
+
+    <div v-else-if="offer" class="text-start mobile-card">
       
       <div class="d-flex align-items-center mb-4">
         <div class="profile-avatar-large me-3">NL</div>
