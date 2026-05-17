@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
+import SpecialBanner from './components/SpecialBanner.vue'; 
 import Navbar from './components/Navbar.vue';
 import Footer from './components/Footer.vue';
 
@@ -15,6 +16,7 @@ const isAppPage = computed(() => {
 <template>
   <div :class="['app-layout', { 'has-mobile-nav': isAppPage }]" style="background-color: #f7f4ed; min-height: 100vh;">
     
+    <SpecialBanner />
     <Navbar />
 
     <main class="main-content">
