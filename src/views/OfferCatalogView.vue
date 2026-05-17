@@ -2,8 +2,8 @@
 import { ref, onMounted } from 'vue';
 import OfferCard from '../components/OfferCard.vue';
 
-const url = 'https://dummyjson.com/products';
-const offers = ref([]); 
+const url = 'http://localhost:8081/api/offer';
+const offers = ref([]);
 
 onMounted(async () => fetchOffers());
 
@@ -13,19 +13,8 @@ async function fetchOffers() {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const data = await response.json();
-
-    offers.value = data.products.map(dummyproduct => ({
-      id: dummyproduct.id,
-      university: "HTWG Konstanz", 
-      course: "Wirtschaftsinformatik",
-      module: dummyproduct.title, 
-      price: Math.round(dummyproduct.price), 
-      description: dummyproduct.description,
-      availableTimes: "Flexibel auf Anfrage",
-      format: "Online & Präsenz"
-    }));
-    console.log("Erfolgreich geladen:", offers.value);
+    offers.value = await response.json();
+    console.log("Erfolgreich vom lokalen Backend geladen:", offers.value);
   } catch (error) {
     console.error('Fehler beim Laden der Angebote:', error);
   }
@@ -39,7 +28,7 @@ async function fetchOffers() {
       <div class="search-section mb-4 mt-2 px-1">
         <div class="text-start mb-4">
           <h2 class="fw-bold text-dark mb-1">Nachhilfeangebote</h2>
-          <p class="text-muted fs-6 mb-0">Finde die passende Nachhilfe an deiner Hochschule. (REST API Daten)</p>
+          <p class="text-muted fs-6 mb-0">Finde die passende Nachhilfe an deiner Hochschule.</p>
         </div>
       </div>
 

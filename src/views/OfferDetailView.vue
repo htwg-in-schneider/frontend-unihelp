@@ -3,31 +3,23 @@ import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
-const url = 'https://dummyjson.com/products';
+const url = 'http://localhost:8081/api/offer';
 
-const offer = ref(null); 
+const offer = ref(null);
 const isLoading = ref(true);
 
 onMounted(async () => fetchOffer());
 
 async function fetchOffer() {
   try {
-    const response = await fetch(`${url}/${route.params.id}`);
+    const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const dummyproduct = await response.json();
+    const allOffers = await response.json();
 
-    offer.value = {
-      id: dummyproduct.id,
-      university: "HTWG Konstanz",
-      course: "Wirtschaftsinformatik",
-      module: dummyproduct.title,
-      price: Math.round(dummyproduct.price),
-      description: dummyproduct.description,
-      availableTimes: "Auf Anfrage",
-      format: "Online & Präsenz"
-    };
+    offer.value = allOffers.find(o => String(o.id) === String(route.params.id)) || null;
+
   } catch (error) {
     console.error('Fehler beim Laden des Angebots:', error);
   } finally {
@@ -50,7 +42,7 @@ async function fetchOffer() {
         <div>
           <h2 class="h4 mb-1 fw-bold text-dark">Natascha Lang</h2>
           <p class="mb-1 text-muted fw-bold" style="font-size: 14px;">
-            Wirtschaftsinformatik, 6 Sem. HTWG
+            {{ offer.course }}, {{ offer.university }}
           </p>
           <p class="mb-0 text-warning" style="font-size: 14px;">
             ★★★★★ <span class="text-dark fw-bold ms-1">4,9</span> <span class="text-muted">(62 Bew.)</span>
