@@ -15,7 +15,7 @@ const closeMenu = () => {
 };
 
 const isDetailView = computed(() => {
-  return route.path.startsWith('/angebot/');
+  return route.path.startsWith('/offer');
 });
 
 const goBack = () => {
@@ -37,9 +37,9 @@ const goBack = () => {
       <div v-else class="d-md-none" style="width: 35px;"></div>
 
       <div class="text-center mx-auto d-flex flex-column align-items-center">
-        <router-link class="navbar-brand fw-bold text-dark text-decoration-none mx-0 p-0 m-0" :class="isDetailView ? 'fs-5' : 'fs-4'" to="/start" @click="closeMenu" style="line-height: 1;">UniHelp</router-link>
+        <router-link class="navbar-brand fw-bold text-dark text-decoration-none mx-0 p-0 m-0" :class="isDetailView ? 'fs-5' : 'fs-4'" to="/" @click="closeMenu" style="line-height: 1;">UniHelp</router-link>
         
-        <div v-if="isDetailView" class="fw-bold fs-4 text-dark mt-1" style="line-height: 1;">Angebot</div>
+        <div v-if="isDetailView" class="fw-bold fs-4 text-dark mt-1" style="line-height: 1;">{{ route.meta.title || 'Angebot' }}</div>
       </div>
 
       <div v-if="isDetailView" style="width: 35px;"></div>
@@ -50,16 +50,16 @@ const goBack = () => {
       <div v-if="!isDetailView" class="collapse navbar-collapse justify-content-end" :class="{ 'show': isMenuOpen }">
         <ul class="navbar-nav align-items-center text-center mt-3 mt-md-0 ms-auto desktop-gap">
           <li class="nav-item mobile-nav-item">
-            <router-link class="nav-link text-dark" to="/angebote" @click="closeMenu">Angebote</router-link>
+            <router-link class="nav-link text-dark" to="/offers" @click="closeMenu">Angebote</router-link>
           </li>
           <li class="nav-item mobile-nav-item">
-            <a class="nav-link text-dark" href="/start#steps" @click="closeMenu">Ablauf</a>
+            <a class="nav-link text-dark" href="/#steps" @click="closeMenu">Ablauf</a>
           </li>
           <li class="nav-item mobile-nav-item">
-            <a class="nav-link text-dark" href="/start#for-students" @click="closeMenu">Für Studenten</a>
+            <a class="nav-link text-dark" href="/#for-students" @click="closeMenu">Für Studenten</a>
           </li>
           <li class="nav-item mobile-nav-item">
-            <a class="nav-link text-dark" href="/start#for-tutors" @click="closeMenu">Tutor werden</a>
+            <a class="nav-link text-dark" href="/#for-tutors" @click="closeMenu">Tutor werden</a>
           </li>
           <li class="nav-item mobile-btn-item mt-3 mt-md-0 px-3 px-md-0">
             <button class="btn btn-outline-dark w-100 px-4" @click="closeMenu">Anmelden</button>

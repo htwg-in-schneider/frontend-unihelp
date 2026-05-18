@@ -8,56 +8,68 @@ defineProps({
 </script>
 
 <template>
-  <div class="card offer-card h-100 text-start">
-    <div class="card-body p-3 d-flex flex-column">
-      <div class="d-flex justify-content-between align-items-start mb-1 flex-grow-1">
-        <div>
-          <h5 class="fw-bold mb-0 text-dark" style="font-size: 16px;">{{ offer.module }}</h5>
-          <p class="text-muted small mt-1 mb-1">{{ offer.course }} ({{ offer.university }})</p>
-        </div>
+  <div class="card h-100 shadow-sm border-0 offer-card position-relative" :class="{ 'inactive-offer': !offer.isActive }">
+    
+    <div class="card-body d-flex flex-column p-4">
+      
+      <div v-if="!offer.isActive" class="position-absolute top-0 end-0 mt-3 me-3">
+        <span class="badge bg-secondary">Inaktiv</span>
+      </div>
+
+      <h5 class="card-title fw-bold text-dark pe-4">{{ offer.module }}</h5>
+      <p class="text-muted small mb-2">{{ offer.university }} • {{ offer.course }}</p>
+      
+      <p class="card-text text-dark fw-bold fs-4 mt-auto pt-3 mb-0">{{ offer.price }} €<span class="fs-6 fw-normal text-muted">/Std.</span></p>
+      
+      <div class="mt-2 d-flex flex-column gap-2">
+        <router-link :to="`/offer/${offer.id}`" class="btn btn-yellow-main w-100 fw-bold text-decoration-none text-center">
+          Angebot ansehen
+        </router-link>
+        <router-link :to="`/offer/edit/${offer.id}`" class="btn btn-blue-dark w-100 fw-bold text-decoration-none text-center">
+          Angebot bearbeiten
+        </router-link>
       </div>
       
-      <div>
-        <p class="mb-3 fw-bold text-dark" style="font-size: 15px;">{{ offer.price }} €/Std.</p>
-        <div class="mt-auto d-flex flex-column gap-2">
-          <router-link :to="`/angebot/${offer.id}`" class="btn-yellow-solid w-100 text-decoration-none">
-            Details ansehen
-          </router-link>
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
 .offer-card {
-  border: 1px solid #dcdcdc;
-  border-radius: 8px;
-  background-color: #fff;
-  transition: transform 0.2s, opacity 0.2s;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  border-radius: 12px !important;
+  overflow: hidden;
+  transition: all 0.3s ease;
 }
 
-.offer-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+.inactive-offer {
+  opacity: 0.65;
+  background-color: #fafafa;
 }
 
-.btn-yellow-solid {
-  height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 14px;
+.inactive-offer:hover {
+  opacity: 0.85; 
+}
+
+.btn-yellow-main {
+  background-color: #d4a218; 
   color: white;
-  background-color: #d4a218;
-  transition: opacity 0.2s;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 0;
 }
 
-.btn-yellow-solid:hover {
-  opacity: 0.9;
+.btn-yellow-main:hover { 
+  background-color: #b88d15; color: white;
+}
+
+.btn-blue-dark {
+  background-color: #1f4277; 
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 0;
+}
+.btn-blue-dark:hover { 
+  background-color: #153059; color: white; 
 }
 </style>

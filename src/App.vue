@@ -8,7 +8,7 @@ import Footer from './components/Footer.vue';
 const route = useRoute();
 
 const isAppPage = computed(() => {
-  const paths = ['/angebote', '/buchungen', '/nachrichten', '/profil'];
+  const paths = ['/offers', '/buchungen', '/nachrichten', '/profil'];
   return paths.includes(route.path);
 });
 </script>

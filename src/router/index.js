@@ -1,33 +1,43 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import OfferCatalogView from '../views/OfferCatalogView.vue'
-import OfferDetailView from '../views/OfferDetailView.vue'
-
-const routes = [
-  {
-    path: '/',
-    redirect: '/angebote' 
-  },
-  {
-    path: '/start', 
-    name: 'home',
-    component: HomeView
-  },
-  {
-    path: '/angebote',
-    name: 'angebote',
-    component: OfferCatalogView
-  },
-  {
-    path: '/angebot/:id',
-    name: 'angebot-detail',
-    component: OfferDetailView
-  }
-]
+import { createRouter, createWebHistory } from 'vue-router';
+import OfferCatalogView from '../views/OfferCatalogView.vue';
+import OfferDetailView from '../views/OfferDetailView.vue';
+import CreateOfferView from '../views/CreateOfferView.vue';
+import EditOfferView from '../views/EditOfferView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes
+  routes: [
+    {
+      path: '/',
+      name: 'home',
+      component: OfferCatalogView,
+      meta: { title: 'Angebote' }
+    },
+    {
+      path: '/offers',
+      name: 'offers',
+      component: OfferCatalogView,
+      meta: { title: 'Angebote' }
+    },
+    {
+      path: '/offer/:id',
+      name: 'offer-detail',
+      component: OfferDetailView,
+      meta: { title: 'Angebot' }
+    },
+    {
+      path: '/offer/new',
+      name: 'offer-create',
+      component: CreateOfferView,
+      meta: { title: 'Neues Angebot' } 
+    },
+    {
+      path: '/offer/edit/:id',
+      name: 'offer-edit',
+      component: EditOfferView,
+      meta: { title: 'Angebot bearbeiten' } 
+    }
+  ]
 })
 
-export default router
+export default router;
