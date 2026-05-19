@@ -6,108 +6,208 @@ const router = useRouter();
 const url = 'http://localhost:8081/api/offer';
 
 const offer = ref({
-  university: '',
-  course: '',
-  module: '',
-  price: null,
-  description: '',
-  format: '',
-  availableTimes: '',
-  language: '',
-  isActive: true
+    module: '',
+    university: '',
+    course: '',
+    price: null,
+    format: '',
+    language: '',
+    availableTimes: '',
+    description: '',
+    isActive: true
 });
 
-async function createOffer() {
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(offer.value),
-    });
-    if (!response.ok) throw new Error('Fehler beim Erstellen');
-    router.push('/offers');
-  } catch (error) {
-    console.error(error);
-    alert('Konnte nicht erstellt werden.');
-  }
+async function saveOffer() {
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(offer.value)
+        });
+        if (response.ok) {
+            router.push('/offers');
+        } else {
+            console.error('Fehler beim Speichern');
+        }
+    } catch (error) {
+        console.error('Netzwerkfehler:', error);
+    }
 }
 </script>
 
 <template>
-  <div class="container py-4 form-wrapper mt-3">
+    <div class="form-focus-view" style="background-color: #f7f4ed; min-height: 100vh;">
+        <div class="container py-5 form-container">
 
-    <form @submit.prevent="createOffer" class="bg-light-beige p-4 rounded-3 border-0 shadow-sm">
-      
-      <div class="mb-4 p-3 bg-white rounded-3 border">
-        <label class="fw-bold mb-2 d-block text-dark">Sichtbarkeit des Angebots</label>
-        <div class="form-check form-switch d-flex align-items-center ps-0 m-0">
-          <input class="form-check-input fs-4 m-0 ms-0 custom-switch" type="checkbox" role="switch" id="isActiveSwitch" v-model="offer.isActive">
-          <label class="form-check-label fw-bold ms-3" :class="offer.isActive ? 'text-success' : 'text-muted'" for="isActiveSwitch">
-            {{ offer.isActive ? 'Aktiv (für andere sichtbar)' : 'Inaktiv (verborgen)' }}
-          </label>
+            <div class="form-card shadow-sm mb-5">
+                <form @submit.prevent="saveOffer">
+
+                    <div class="visibility-box mb-4 p-3 rounded"
+                        style="background-color: #f8f9fa; border: 1px solid #e0e0e0;">
+                        <label class="fw-bold d-block mb-2 text-dark">Sichtbarkeit des Angebots</label>
+                        <div class="form-check form-switch d-flex align-items-center m-0 p-0">
+                            <input class="form-check-input focus-switch m-0 me-3" type="checkbox" role="switch"
+                                id="activeSwitch" v-model="offer.isActive">
+                            <label class="form-check-label fw-bold"
+                                :class="offer.isActive ? 'text-success-custom' : 'text-muted'" for="activeSwitch">
+                                {{ offer.isActive ? 'Aktiv (für andere sichtbar)' : 'Inaktiv (verborgen)' }}
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark">Modul<span class="text-danger">*</span></label>
+                        <input v-model="offer.module" type="text" class="form-control custom-input"
+                            placeholder="z.B. Datenbank- und Informationssysteme 1" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold text-dark">Hochschule<span
+                                    class="text-danger">*</span></label>
+                            <input v-model="offer.university" type="text" class="form-control custom-input"
+                                placeholder="z.B. HTWG Konstanz" required>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold text-dark">Studiengang<span
+                                    class="text-danger">*</span></label>
+                            <input v-model="offer.course" type="text" class="form-control custom-input"
+                                placeholder="z.B. Wirtschaftsinformatik" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-4">
+                            <label class="form-label fw-bold text-dark">Preis pro Stunde (€)<span
+                                    class="text-danger">*</span></label>
+                            <input v-model="offer.price" type="number" class="form-control custom-input"
+                                placeholder="z.B. 17" required>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <label class="form-label fw-bold text-dark">Format<span class="text-danger">*</span></label>
+                            <input v-model="offer.format" type="text" class="form-control custom-input"
+                                placeholder="z.B. Online, Präsenz..." required>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <label class="form-label fw-bold text-dark">Sprache<span
+                                    class="text-danger">*</span></label>
+                            <input v-model="offer.language" type="text" class="form-control custom-input"
+                                placeholder="z.B. Deutsch" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark">Verfügbare Zeiten<span
+                                class="text-danger">*</span></label>
+                        <input v-model="offer.availableTimes" type="text" class="form-control custom-input"
+                            placeholder="z.B. Mo, Mi, Do 16:30 - 19:00" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark">Beschreibung<span
+                                class="text-danger">*</span></label>
+                        <textarea v-model="offer.description" class="form-control custom-input" rows="4"
+                            placeholder="Bestnoten sind garantiert! Schreibe hier ein paar Details..."
+                            required></textarea>
+                    </div>
+
+                    <div class="mt-5 d-flex flex-column gap-3">
+                        <button type="submit"
+                            class="btn btn-yellow-main w-100 fw-bold fs-5 shadow-sm">Veröffentlichen</button>
+                        <button type="button" @click="router.back()"
+                            class="btn btn-outline-cancel w-100 fw-bold fs-5">Abbrechen</button>
+                    </div>
+
+                </form>
+            </div>
+
         </div>
-      </div>
-
-      <div class="mb-3">
-        <label class="fw-bold mb-1">Hochschule<span class="text-danger">*</span></label>
-        <input type="text" class="form-control" v-model="offer.university" placeholder="z.B. HTWG Konstanz" required />
-      </div>
-      <div class="mb-3">
-        <label class="fw-bold mb-1">Studiengang<span class="text-danger">*</span></label>
-        <input type="text" class="form-control" v-model="offer.course" placeholder="z.B. Wirtschaftsinformatik" required />
-      </div>
-      <div class="mb-3">
-        <label class="fw-bold mb-1">Modul<span class="text-danger">*</span></label>
-        <input type="text" class="form-control" v-model="offer.module" placeholder="z.B. Datenbank- und Informationssysteme 1" required />
-      </div>
-      <div class="mb-3">
-        <label class="fw-bold mb-1">Preis pro Stunde (€)<span class="text-danger">*</span></label>
-        <input type="number" class="form-control" v-model="offer.price" placeholder="z.B. 17" required />
-      </div>
-      <div class="mb-3">
-        <label class="fw-bold mb-1">Beschreibung<span class="text-danger">*</span></label>
-        <textarea class="form-control" rows="3" v-model="offer.description" placeholder="Bestnoten sind garantiert! Schreibe hier ein paar Details..." required></textarea>
-      </div>
-      <div class="mb-3">
-        <label class="fw-bold mb-1">Format<span class="text-danger">*</span></label>
-        <input type="text" class="form-control" v-model="offer.format" placeholder="z.B. Online, Präsenz oder Online & Präsenz" required />
-      </div>
-      <div class="mb-3">
-        <label class="fw-bold mb-1">Verfügbare Zeiten<span class="text-danger">*</span></label>
-        <input type="text" class="form-control" v-model="offer.availableTimes" placeholder="z.B. Mo, Mi, Do 16:30 - 19:00" required />
-      </div>
-      <div class="mb-4">
-        <label class="fw-bold mb-1">Sprache<span class="text-danger">*</span></label>
-        <input type="text" class="form-control" v-model="offer.language" placeholder="z.B. Deutsch" required />
-      </div>
-
-      <button type="submit" class="btn btn-yellow-main w-100 fw-bold fs-5 py-2 mb-2">Veröffentlichen</button>
-      <button type="button" @click="router.back()" class="btn btn-cancel w-100 fw-bold fs-5 py-2">Abbrechen</button>
-    </form>
-  </div>
+    </div>
 </template>
 
 <style scoped>
-.form-wrapper { max-width: 550px; margin: 0 auto; }
-.bg-light-beige { background-color: #fcfaf5; }
-.form-control { border-radius: 8px; border: 1px solid #d1d1d1; padding: 10px; }
-
-.btn-yellow-main { background-color: #fcdb39; color: #333; border: 1px solid #d4b82d; border-radius: 8px; }
-.btn-yellow-main:hover { background-color: #f0ce2b; }
-
-.btn-cancel {
-  background-color: transparent;
-  color: #111827;
-  border: 1px solid #111827;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-.btn-cancel:hover {
-  background-color: #f3f4f6;
-  color: #111827;
+.form-container {
+    max-width: 800px;
+    margin: 0 auto;
 }
 
-.custom-switch { margin-left: 0 !important; }
-.custom-switch:checked { background-color: #198754; border-color: #198754; }
-.text-success { color: #198754 !important; }
+.form-card {
+    background-color: #ffffff;
+    border-radius: 20px;
+    padding: 35px;
+    border: 1px solid #f0f0f0;
+}
+
+.custom-input {
+    border-radius: 10px;
+    border: 1px solid #dcdcdc;
+    padding: 12px 16px;
+    font-size: 1rem;
+    background-color: #fafafa;
+}
+
+.custom-input:focus {
+    background-color: #ffffff;
+    border-color: #d4a218;
+    box-shadow: 0 0 0 0.25rem rgba(212, 162, 24, 0.25);
+    outline: none;
+}
+
+.custom-input::placeholder {
+    color: #888;
+}
+
+.focus-switch {
+    width: 45px !important;
+    height: 24px !important;
+    cursor: pointer;
+}
+
+.focus-switch:checked {
+    background-color: #0b7a54;
+    border-color: #0b7a54;
+}
+
+.text-success-custom {
+    color: #0b7a54 !important;
+}
+
+.btn-yellow-main {
+    background-color: #d4a218;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 0;
+    transition: background-color 0.2s;
+}
+
+.btn-yellow-main:hover {
+    background-color: #b88d15;
+    color: white;
+}
+
+.btn-outline-cancel {
+    background-color: transparent;
+    color: #212529;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 12px 0;
+    transition: all 0.2s;
+}
+
+.btn-outline-cancel:hover {
+    background-color: #f8f9fa;
+    border-color: #ccc;
+}
+
+@media (max-width: 768px) {
+    .form-card {
+        padding: 20px;
+        border-radius: 16px;
+    }
+
+    .form-container {
+        max-width: 100%;
+    }
+}
 </style>

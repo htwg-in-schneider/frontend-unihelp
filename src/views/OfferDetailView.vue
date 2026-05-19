@@ -30,13 +30,13 @@ async function fetchOffer() {
 
 <template>
   <div class="container py-4 content-wrapper-desktop">
-    
+
     <div v-if="isLoading" class="text-center py-5">
       <p class="text-muted">Angebot wird geladen...</p>
     </div>
 
-    <div v-else-if="offer" class="text-start mobile-card">
-      
+    <div v-else-if="offer" class="text-start mobile-card desktop-card">
+
       <div class="d-flex align-items-center mb-4">
         <div class="profile-avatar-large me-3">NL</div>
         <div>
@@ -75,16 +75,16 @@ async function fetchOffer() {
       </div>
 
       <button class="btn-message-outline w-100 mb-3 text-dark">Nachricht senden</button>
-      
+
       <div class="text-center mt-2 pb-2">
         <a href="#" class="report-link">⚠ Angebot melden</a>
       </div>
 
     </div>
-    
+
     <div v-else class="text-center py-5">
       <h3 class="mb-3 fw-bold text-dark">Angebot wurde nicht gefunden.</h3>
-      <router-link to="/angebote" class="btn btn-outline-dark px-4 py-2 fw-bold">Zurück zur Übersicht</router-link>
+      <router-link to="/offers" class="btn btn-outline-dark px-4 py-2 fw-bold">Zurück zur Übersicht</router-link>
     </div>
 
   </div>
@@ -92,7 +92,6 @@ async function fetchOffer() {
 
 <style scoped>
 .content-wrapper-desktop {
-  max-width: 500px;
   margin: 0 auto;
 }
 
@@ -156,7 +155,7 @@ async function fetchOffer() {
 }
 
 .report-link {
-  color: #a81c1c; 
+  color: #a81c1c;
   font-size: 13px;
   font-weight: bold;
   text-decoration: underline !important;
@@ -167,12 +166,32 @@ async function fetchOffer() {
 }
 
 @media (max-width: 767px) {
+  .content-wrapper-desktop {
+    max-width: 500px;
+  }
+
   .mobile-card {
     background-color: white;
     border: 1px solid #e0dcd5;
     border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  }
+}
+
+@media (min-width: 768px) {
+  .content-wrapper-desktop {
+    max-width: 700px;
+    padding-top: 40px !important;
+    padding-bottom: 40px !important;
+  }
+
+  .desktop-card {
+    background-color: #ffffff;
+    border: 1px solid #f0f0f0;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   }
 }
 </style>
