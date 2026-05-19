@@ -12,10 +12,20 @@ const offer = ref({
     price: null,
     format: '',
     language: '',
-    availableTimes: '',
+    availabilities: [
+        { date: '', startTime: '', endTime: '', booked: false }
+    ],
     description: '',
     isActive: true
 });
+
+function addAvailability() {
+    offer.value.availabilities.push({ date: '', startTime: '', endTime: '', booked: false });
+}
+
+function removeAvailability(index) {
+    offer.value.availabilities.splice(index, 1);
+}
 
 async function saveOffer() {
     try {
@@ -100,13 +110,37 @@ async function saveOffer() {
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-dark">Verfügbare Zeiten<span
-                                class="text-danger">*</span></label>
-                        <input v-model="offer.availableTimes" type="text" class="form-control custom-input"
-                            placeholder="z.B. Mo, Mi, Do 16:30 - 19:00" required>
-                    </div>
+                    <div class="mb-4 p-4 rounded" style="background-color: #f8f9fa; border: 1px solid #e0e0e0;">
+                        <label class="form-label fw-bold text-dark d-block mb-3">Verfügbare Termine<span class="text-danger">*</span></label>
+                        
+                        <div v-for="(avail, index) in offer.availabilities" :key="index" class="row mb-3 align-items-end">
+                            <div class="col-md-4 mb-2 mb-md-0">
+                                <label class="form-label text-muted small mb-1">Datum</label>
+                                <input v-model="avail.date" type="date" class="form-control custom-input" required>
+                            </div>
+                            <div class="col-md-3 mb-2 mb-md-0">
+                                <label class="form-label text-muted small mb-1">Von</label>
+                                <input v-model="avail.startTime" type="time" class="form-control custom-input" required>
+                            </div>
+                            <div class="col-md-3 mb-2 mb-md-0">
+                                <label class="form-label text-muted small mb-1">Bis</label>
+                                <input v-model="avail.endTime" type="time" class="form-control custom-input" required>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" @click="removeAvailability(index)" 
+                                    class="btn btn-outline-danger w-100 d-flex justify-content-center align-items-center" 
+                                    style="height: 48px; border-radius: 10px;" 
+                                    :disabled="offer.availabilities.length === 1" 
+                                    title="Termin entfernen">
+                                    Löschen
+                                </button>
+                            </div>
+                        </div>
 
+                        <button type="button" @click="addAvailability" class="btn btn-outline-secondary mt-2 fw-bold" style="border-radius: 10px;">
+                            + Weiteren Termin hinzufügen
+                        </button>
+                    </div>
                     <div class="mb-4">
                         <label class="form-label fw-bold text-dark">Beschreibung<span
                                 class="text-danger">*</span></label>

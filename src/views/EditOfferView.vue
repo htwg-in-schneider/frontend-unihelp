@@ -6,7 +6,9 @@ const route = useRoute();
 const router = useRouter();
 const url = 'http://localhost:8081/api/offer';
 
-const offer = ref({});
+const offer = ref({
+    availabilities: []
+});
 const showDeleteModal = ref(false);
 
 onMounted(() => fetchOffer());
@@ -16,10 +18,25 @@ async function fetchOffer() {
         const response = await fetch(`${url}/${route.params.id}`);
         if (!response.ok) throw new Error('Nicht gefunden');
         offer.value = await response.json();
+
+        if (!offer.value.availabilities || offer.value.availabilities.length === 0) {
+            offer.value.availabilities = [{ date: '', startTime: '', endTime: '', booked: false }];
+        }
     } catch (error) {
         console.error(error);
         router.push('/offers');
     }
+}
+
+function addAvailability() {
+    if (!offer.value.availabilities) {
+        offer.value.availabilities = [];
+    }
+    offer.value.availabilities.push({ date: '', startTime: '', endTime: '', booked: false });
+}
+
+function removeAvailability(index) {
+    offer.value.availabilities.splice(index, 1);
 }
 
 async function updateOffer() {
@@ -110,12 +127,47 @@ async function executeDelete() {
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-dark">Verfügbare Zeiten<span
+                    <div class="mb-4 p-4 rounded" style="background-color: #f8f9fa; border: 1px solid #e0e0e0;">
+                        <label class="form-label fw-bold text-dark d-block mb-3">Verfügbare Termine<span
                                 class="text-danger">*</span></label>
-                        <input v-model="offer.availableTimes" type="text" class="form-control custom-input" required>
-                    </div>
 
+                        <div v-for="(avail, index) in offer.availabilities" :key="index"
+                            class="row mb-3 align-items-end">
+                            <div class="col-md-4 mb-2 mb-md-0">
+                                <label class="form-label text-muted small mb-1">Datum</label>
+                                <input v-model="avail.date" type="date" class="form-control custom-input" required
+                                    :disabled="avail.booked">
+                            </div>
+                            <div class="col-md-3 mb-2 mb-md-0">
+                                <label class="form-label text-muted small mb-1">Von</label>
+                                <input v-model="avail.startTime" type="time" class="form-control custom-input" required
+                                    :disabled="avail.booked">
+                            </div>
+                            <div class="col-md-3 mb-2 mb-md-0">
+                                <label class="form-label text-muted small mb-1">Bis</label>
+                                <input v-model="avail.endTime" type="time" class="form-control custom-input" required
+                                    :disabled="avail.booked">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" @click="removeAvailability(index)"
+                                    class="btn btn-outline-danger w-100 d-flex justify-content-center align-items-center"
+                                    style="height: 48px; border-radius: 10px;"
+                                    :disabled="offer.availabilities.length === 1 || avail.booked"
+                                    title="Termin entfernen">
+                                    Löschen
+                                </button>
+                            </div>
+                            <div v-if="avail.booked" class="col-12 mt-2">
+                                <small class="text-danger fw-bold">⚠️ Dieser Termin wurde bereits von einem Studenten
+                                    gebucht und kann nicht mehr geändert werden.</small>
+                            </div>
+                        </div>
+
+                        <button type="button" @click="addAvailability" class="btn btn-outline-secondary mt-2 fw-bold"
+                            style="border-radius: 10px;">
+                            + Weiteren Termin hinzufügen
+                        </button>
+                    </div>
                     <div class="mb-4">
                         <label class="form-label fw-bold text-dark">Beschreibung<span
                                 class="text-danger">*</span></label>
@@ -183,6 +235,12 @@ async function executeDelete() {
     border-color: #1f4277;
     box-shadow: 0 0 0 0.25rem rgba(31, 66, 119, 0.25);
     outline: none;
+}
+
+.custom-input:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+    border-color: #e0e0e0;
 }
 
 .focus-switch {

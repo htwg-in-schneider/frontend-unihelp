@@ -17,13 +17,37 @@ async function fetchOffer() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const allOffers = await response.json();
-
     offer.value = allOffers.find(o => String(o.id) === String(route.params.id)) || null;
-
   } catch (error) {
     console.error('Fehler beim Laden des Angebots:', error);
   } finally {
     isLoading.value = false;
+  }
+}
+
+function formatDate(dateString) {
+  if (!dateString) return '';
+  const [year, month, day] = dateString.split('-');
+  return `${day}.${month}.${year}`;
+}
+
+async function toggleBooking(avail) {
+  const oldState = avail.booked;
+  avail.booked = !avail.booked;
+
+  try {
+    const response = await fetch(`${url}/${offer.value.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(offer.value),
+    });
+
+    if (!response.ok) {
+      throw new Error('Fehler beim Speichern im Backend');
+    }
+  } catch (error) {
+    console.error('Netzwerkfehler:', error);
+    avail.booked = oldState;
   }
 }
 </script>
@@ -63,15 +87,49 @@ async function fetchOffer() {
 
       <div class="mb-4">
         <div class="yellow-label mb-1">VERFÜGBARKEIT</div>
-        <p class="fw-bold text-dark">{{ offer.availableTimes }} · {{ offer.format }}</p>
-      </div>
+        <div class="fw-bold text-dark mb-3">Unterrichtsformat: {{ offer.format }}</div>
 
+        <div v-if="offer.availabilities && offer.availabilities.length > 0">
+          <ul class="list-unstyled mb-0">
+            <li v-for="avail in offer.availabilities" :key="avail.id"
+              class="mb-2 p-2 border rounded d-flex justify-content-between align-items-center"
+              :class="{ 'bg-light': avail.booked }">
+
+              <div>
+                <div
+                  :class="{ 'text-decoration-line-through text-muted': avail.booked, 'text-dark fw-bold': !avail.booked }"
+                  style="font-size: 15px;">
+                  <span class="d-block d-sm-inline mb-1 mb-sm-0">📅 {{ formatDate(avail.date) }}</span>
+
+                  <span class="d-none d-sm-inline mx-1">|</span>
+
+                  <span class="d-block d-sm-inline">🕒 {{ avail.startTime }} - {{ avail.endTime }} Uhr</span>
+                </div>
+
+                <div class="mt-1 mt-sm-0 d-sm-inline-block ms-sm-2">
+                  <span v-if="avail.booked" class="badge bg-danger" style="font-size: 11px;">Gebucht</span>
+                  <span v-else class="badge bg-success" style="font-size: 11px;">Frei</span>
+                </div>
+              </div>
+
+              <button @click="toggleBooking(avail)" class="btn btn-sm px-3 py-1 m-0 fw-bold ms-2 flex-shrink-0"
+                :class="avail.booked ? 'btn-outline-danger' : 'btn-yellow-main text-dark'"
+                style="height: auto; font-size: 13px;">
+                {{ avail.booked ? 'Stornieren' : 'Buchen' }}
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <div v-else>
+          <span class="text-muted fw-bold" style="font-size: 15px;">Bisher keine Termine hinterlegt.</span>
+        </div>
+      </div>
       <div class="price-book-box mb-3 d-flex justify-content-between align-items-center p-3 bg-white">
         <div>
           <div class="yellow-label mb-1">PREIS</div>
           <div class="fw-bold fs-3 text-dark">{{ offer.price }} €/Std.</div>
         </div>
-        <button class="btn-yellow-main px-4 m-0 text-dark">Buchen</button>
       </div>
 
       <button class="btn-message-outline w-100 mb-3 text-dark">Nachricht senden</button>
