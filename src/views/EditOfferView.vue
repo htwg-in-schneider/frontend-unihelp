@@ -96,7 +96,12 @@ async function executeDelete() {
                         </div>
                         <div class="col-md-4 mb-4">
                             <label class="form-label fw-bold text-dark">Format<span class="text-danger">*</span></label>
-                            <input v-model="offer.format" type="text" class="form-control custom-input" required>
+                            <select v-model="offer.format" class="form-select custom-input" required>
+                                <option value="" disabled>Bitte wählen...</option>
+                                <option value="ONLINE">Online</option>
+                                <option value="PRAESENZ">Präsenz</option>
+                                <option value="HYBRID">Online & Präsenz</option>
+                            </select>
                         </div>
                         <div class="col-md-4 mb-4">
                             <label class="form-label fw-bold text-dark">Sprache<span
