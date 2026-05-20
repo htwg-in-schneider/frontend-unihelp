@@ -1,6 +1,18 @@
 import './assets/style.css'
 
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import App from './App.vue'
+import router from './router'
 
-createApp(App).mount('#app')
+const app = createApp(App)
+const pinia = createPinia() 
+
+app.config.globalProperties.$formatPrice = (price) => {
+    if (price === null || price === undefined) return '';
+    return Number(price).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+app.use(router)
+app.use(pinia) 
+app.mount('#app')
