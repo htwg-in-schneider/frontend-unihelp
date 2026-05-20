@@ -109,7 +109,7 @@ async function executeDelete() {
                         <div class="col-md-4 mb-4">
                             <label class="form-label fw-bold text-dark">Preis pro Stunde (€)<span
                                     class="text-danger">*</span></label>
-                            <input v-model="offer.price" type="number" class="form-control custom-input" required>
+                            <input v-model="offer.price" type="number" step="0.01" class="form-control custom-input" required>
                         </div>
                         <div class="col-md-4 mb-4">
                             <label class="form-label fw-bold text-dark">Format<span class="text-danger">*</span></label>

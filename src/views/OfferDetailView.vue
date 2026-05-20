@@ -128,7 +128,7 @@ async function toggleBooking(avail) {
       <div class="price-book-box mb-3 d-flex justify-content-between align-items-center p-3 bg-white">
         <div>
           <div class="yellow-label mb-1">PREIS</div>
-          <div class="fw-bold fs-3 text-dark">{{ offer.price }} €/Std.</div>
+          <div class="fw-bold fs-3 text-dark">{{ $formatPrice(offer.price) }} €/Std.</div>
         </div>
       </div>
 

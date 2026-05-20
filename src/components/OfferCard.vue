@@ -19,7 +19,7 @@ defineProps({
       <h5 class="card-title fw-bold text-dark pe-4">{{ offer.module }}</h5>
       <p class="text-muted small mb-2">{{ offer.university }} • {{ offer.course }}</p>
       
-      <p class="card-text text-dark fw-bold fs-4 mt-auto pt-3 mb-0">{{ offer.price }} €<span class="fs-6 fw-normal text-muted">/Std.</span></p>
+      <p class="card-text text-dark fw-bold fs-4 mt-auto pt-3 mb-0">{{ $formatPrice(offer.price) }} €<span class="fs-6 fw-normal text-muted">/Std.</span></p>
       
       <div class="mt-2 d-flex flex-column gap-2">
         <router-link :to="`/offer/${offer.id}`" class="btn btn-yellow-main w-100 fw-bold text-decoration-none text-center">

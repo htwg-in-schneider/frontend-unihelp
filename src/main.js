@@ -8,6 +8,11 @@ import router from './router'
 const app = createApp(App)
 const pinia = createPinia() 
 
+app.config.globalProperties.$formatPrice = (price) => {
+    if (price === null || price === undefined) return '';
+    return Number(price).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
 app.use(router)
 app.use(pinia) 
 app.mount('#app')
