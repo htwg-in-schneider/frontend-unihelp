@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { authGuard } from '@auth0/auth0-vue';
 import HomeView from '../views/HomeView.vue';
 import OfferCatalogView from '../views/OfferCatalogView.vue';
 import OfferDetailView from '../views/OfferDetailView.vue';
@@ -31,18 +32,21 @@ const router = createRouter({
       path: '/offer/new',
       name: 'offer-create',
       component: CreateOfferView,
-      meta: { title: 'Neues Angebot' }
+      meta: { title: 'Neues Angebot' },
+      beforeEnter: authGuard
     },
     {
       path: '/offer/edit/:id',
       name: 'offer-edit',
       component: EditOfferView,
-      meta: { title: 'Angebot bearbeiten' }
+      meta: { title: 'Angebot bearbeiten' },
+      beforeEnter: authGuard
     },
     {
       path: '/profile',
       name: 'profile',
-      component: ProfileView
+      component: ProfileView,
+      beforeEnter: authGuard
     }
   ]
 })

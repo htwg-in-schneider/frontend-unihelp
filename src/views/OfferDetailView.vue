@@ -1,8 +1,10 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import { useAuth0 } from '@auth0/auth0-vue';
 
 const route = useRoute();
+const { isAuthenticated, getAccessTokenSilently, loginWithRedirect } = useAuth0();
 const url = 'http://localhost:8081/api/offer';
 
 const offer = ref(null);
@@ -32,13 +34,22 @@ function formatDate(dateString) {
 }
 
 async function toggleBooking(avail) {
+  if (!isAuthenticated.value) {
+    loginWithRedirect();
+    return;
+  }
+
+  const token = await getAccessTokenSilently();
   const oldState = avail.booked;
   avail.booked = !avail.booked;
 
   try {
-    const response = await fetch(`${url}/${offer.value.id}`, {
+    const response = await fetch(`${url}/${offer.value.id}/book`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify(offer.value),
     });
 

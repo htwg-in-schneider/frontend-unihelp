@@ -1,8 +1,10 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuth0 } from '@auth0/auth0-vue';
 
 const router = useRouter();
+const { getAccessTokenSilently } = useAuth0();
 const url = 'http://localhost:8081/api/offer';
 
 const offer = ref({
@@ -29,9 +31,13 @@ function removeAvailability(index) {
 
 async function saveOffer() {
     try {
+        const token = await getAccessTokenSilently();
         const response = await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify(offer.value)
         });
         if (response.ok) {
@@ -111,9 +117,11 @@ async function saveOffer() {
                     </div>
 
                     <div class="mb-4 p-4 rounded" style="background-color: #f8f9fa; border: 1px solid #e0e0e0;">
-                        <label class="form-label fw-bold text-dark d-block mb-3">Verfügbare Termine<span class="text-danger">*</span></label>
-                        
-                        <div v-for="(avail, index) in offer.availabilities" :key="index" class="row mb-3 align-items-end">
+                        <label class="form-label fw-bold text-dark d-block mb-3">Verfügbare Termine<span
+                                class="text-danger">*</span></label>
+
+                        <div v-for="(avail, index) in offer.availabilities" :key="index"
+                            class="row mb-3 align-items-end">
                             <div class="col-md-4 mb-2 mb-md-0">
                                 <label class="form-label text-muted small mb-1">Datum</label>
                                 <input v-model="avail.date" type="date" class="form-control custom-input" required>
@@ -127,17 +135,17 @@ async function saveOffer() {
                                 <input v-model="avail.endTime" type="time" class="form-control custom-input" required>
                             </div>
                             <div class="col-md-2">
-                                <button type="button" @click="removeAvailability(index)" 
-                                    class="btn btn-outline-danger w-100 d-flex justify-content-center align-items-center" 
-                                    style="height: 48px; border-radius: 10px;" 
-                                    :disabled="offer.availabilities.length === 1" 
-                                    title="Termin entfernen">
+                                <button type="button" @click="removeAvailability(index)"
+                                    class="btn btn-outline-danger w-100 d-flex justify-content-center align-items-center"
+                                    style="height: 48px; border-radius: 10px;"
+                                    :disabled="offer.availabilities.length === 1" title="Termin entfernen">
                                     Löschen
                                 </button>
                             </div>
                         </div>
 
-                        <button type="button" @click="addAvailability" class="btn btn-outline-secondary mt-2 fw-bold" style="border-radius: 10px;">
+                        <button type="button" @click="addAvailability" class="btn btn-outline-secondary mt-2 fw-bold"
+                            style="border-radius: 10px;">
                             + Weiteren Termin hinzufügen
                         </button>
                     </div>

@@ -1,9 +1,11 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useAuth0 } from '@auth0/auth0-vue';
 
 const route = useRoute();
 const router = useRouter();
+const { getAccessTokenSilently } = useAuth0();
 const url = 'http://localhost:8081/api/offer';
 
 const offer = ref({
@@ -41,9 +43,13 @@ function removeAvailability(index) {
 
 async function updateOffer() {
     try {
+        const token = await getAccessTokenSilently();
         const response = await fetch(`${url}/${offer.value.id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify(offer.value),
         });
         if (!response.ok) throw new Error('Fehler beim Update');
@@ -56,7 +62,13 @@ async function updateOffer() {
 
 async function executeDelete() {
     try {
-        const response = await fetch(`${url}/${offer.value.id}`, { method: 'DELETE' });
+        const token = await getAccessTokenSilently();
+        const response = await fetch(`${url}/${offer.value.id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) throw new Error('Fehler beim Löschen');
         showDeleteModal.value = false;
         router.push('/offers');
@@ -109,7 +121,8 @@ async function executeDelete() {
                         <div class="col-md-4 mb-4">
                             <label class="form-label fw-bold text-dark">Preis pro Stunde (€)<span
                                     class="text-danger">*</span></label>
-                            <input v-model="offer.price" type="number" step="0.01" class="form-control custom-input" required>
+                            <input v-model="offer.price" type="number" step="0.01" class="form-control custom-input"
+                                required>
                         </div>
                         <div class="col-md-4 mb-4">
                             <label class="form-label fw-bold text-dark">Format<span class="text-danger">*</span></label>
