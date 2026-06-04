@@ -5,7 +5,7 @@ import { useRoute } from 'vue-router';
 const route = useRoute();
 
 const isAppPage = computed(() => {
-  const paths = ['/', '/offers', '/buchungen', '/nachrichten', '/profil'];
+  const paths = ['/offers', '/buchungen', '/nachrichten', '/profile'];
   return paths.includes(route.path);
 });
 
@@ -21,12 +21,12 @@ const isFormMode = computed(() => {
       :class="{ 'hide-on-mobile-app': isAppPage && !isFormMode }"
       style="background-color: #f7f4ed;"
     >
-      <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center">
+      <div class="container-fluid px-4 px-lg-5 d-flex flex-column flex-md-row justify-content-between align-items-center">
         <div class="fw-bold fs-5 mb-2 mb-md-0 text-dark">UniHelp 2026</div>
-        <div class="d-flex gap-3 text-dark">
-          <a href="#" class="text-decoration-none text-dark opacity-75">Impressum</a>
-          <a href="#" class="text-decoration-none text-dark opacity-75">Datenschutz</a>
-          <a href="#" class="text-decoration-none text-dark opacity-75">Kontakt</a>
+        <div class="d-flex gap-4 text-dark">
+          <router-link to="/imprint" class="text-decoration-none text-dark opacity-75 footer-link-hover">Impressum</router-link>
+          <router-link to="/privacy" class="text-decoration-none text-dark opacity-75 footer-link-hover">Datenschutz</router-link>
+          <a href="/#contact" class="text-decoration-none text-dark opacity-75 footer-link-hover">Kontakt</a>
         </div>
       </div>
     </footer>
@@ -55,12 +55,12 @@ const isFormMode = computed(() => {
         <span style="font-size: 11px;">Nachrichten</span>
       </a>
 
-      <a href="#" class="nav-item text-decoration-none text-secondary text-center">
+      <router-link to="/profile" class="nav-item text-decoration-none text-secondary text-center">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-person d-block mx-auto mb-1" viewBox="0 0 16 16">
           <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
         </svg>
         <span style="font-size: 11px;">Profil</span>
-      </a>
+      </router-link>
     </div>
   </div>
 </template>
@@ -74,6 +74,11 @@ const isFormMode = computed(() => {
 .active-blue .text-active {
   color: #2b487b !important;
   font-weight: bold;
+}
+
+.footer-link-hover:hover {
+  opacity: 1 !important;
+  color: #d4a218 !important;
 }
 
 @media (max-width: 767px) {

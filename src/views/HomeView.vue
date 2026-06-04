@@ -1,12 +1,17 @@
 <script setup>
+import { ref, watchEffect } from 'vue';
 import { tutors } from '../data.js';
 import TutorCard from '../components/TutorCard.vue';
 import { useAuth0 } from '@auth0/auth0-vue'; 
 import { useRouter } from 'vue-router'; 
-import { watchEffect } from 'vue'; 
 
 const { loginWithRedirect, isAuthenticated } = useAuth0();
 const router = useRouter();
+
+const contact = ref({
+  subject: '',
+  body: ''
+});
 
 watchEffect(() => {
   if (isAuthenticated.value) {
@@ -17,6 +22,11 @@ watchEffect(() => {
 const handleLogin = () => {
   loginWithRedirect();
 };
+
+function sendMail() {
+  const mailtoLink = `mailto:unihelp123@proton.me?subject=${encodeURIComponent(contact.value.subject)}&body=${encodeURIComponent(contact.value.body)}`;
+  window.location.href = mailtoLink;
+}
 </script>
 
 <template>
@@ -107,7 +117,7 @@ const handleLogin = () => {
         <li>Termin und Nachricht direkt an den Tutor</li>
         <li>Sicher und einfach bezahlen</li>
       </ul>
-      <router-link to="/angebote" class="button-register-transparent">Jetzt Nachhilfe finden</router-link>
+      <router-link to="/offers" class="button-register-transparent">Jetzt Nachhilfe finden</router-link>
     </div>
   </section>
 
@@ -124,7 +134,7 @@ const handleLogin = () => {
         <li>Nebeneinkommen durch Hilfe verdienen</li>
         <li>Bewertungen sammeln und Profil aufbauen</li>
       </ul>
-      <router-link to="/angebote" class="button-register-transparent">Als Tutor starten</router-link>
+      <router-link to="/offers" class="button-register-transparent">Als Tutor starten</router-link>
     </div>
   </section>
 
@@ -141,10 +151,59 @@ const handleLogin = () => {
     </div>
   </section>
 
+  <section id="contact" class="contact-wrapper">
+    <div class="container" style="max-width: 1000px;">
+      <div class="row align-items-center">
+        
+        <div class="col-md-5 mb-4 mb-md-0 text-start pe-md-5">
+          <p class="section-label mb-2">Kontakt</p>
+          <h2 class="section-title fw-bold mb-3">Hast du Fragen?</h2>
+          <p class="section-subtitle mb-4 text-muted" style="line-height: 1.6;">
+            Egal ob es um die Registrierung, Probleme bei einer Buchung oder allgemeines Feedback geht – schreib uns einfach eine kurze Nachricht!
+          </p>
+          <div class="d-flex align-items-center gap-3">
+            <div style="background-color: #e9ecef; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center;">
+              ✉️
+            </div>
+            <span class="fw-bold text-dark">unihelp123@proton.me</span>
+          </div>
+        </div>
+
+        <div class="col-md-7">
+          <form @submit.prevent="sendMail" class="shadow-sm" style="background: white; padding: 35px; border-radius: 16px; border: 1px solid #e0dcd5;">
+            <div style="margin-bottom: 20px; text-align: left;">
+              <label style="font-weight: 600; margin-bottom: 8px; color: #424242; font-size: 14px;">Betreff</label>
+              <input v-model="contact.subject" type="text" placeholder="z.B. Frage zur Registrierung" required style="padding: 12px 15px; border-radius: 8px; border: 1px solid #dcdcdc; width: 100%; outline: none; background-color: #fafafa;" onfocus="this.style.backgroundColor='#fff'; this.style.borderColor='#d4a218';" onblur="this.style.backgroundColor='#fafafa'; this.style.borderColor='#dcdcdc';" />
+            </div>
+            <div style="margin-bottom: 25px; text-align: left;">
+              <label style="font-weight: 600; margin-bottom: 8px; color: #424242; font-size: 14px;">Deine Nachricht</label>
+              <textarea v-model="contact.body" rows="4" placeholder="Wie können wir dir helfen?" required style="padding: 12px 15px; border-radius: 8px; border: 1px solid #dcdcdc; width: 100%; outline: none; resize: vertical; background-color: #fafafa;" onfocus="this.style.backgroundColor='#fff'; this.style.borderColor='#d4a218';" onblur="this.style.backgroundColor='#fafafa'; this.style.borderColor='#dcdcdc';"></textarea>
+            </div>
+            <button type="submit" class="button-hero-yellow" style="width: 100%; margin: 0; padding: 14px; border-radius: 8px;">Nachricht senden</button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <section class="cta-section">
     <h2>Bereit loszulegen?</h2>
     <p>Registriere dich kostenlos und finde noch heute die passende Nachhilfe oder werde selbst Tutor.</p>
     <br>
-    <a href="#" class="button-register-white">Kostenlos registrieren</a>
+    <button @click="handleLogin" class="button-register-white" style="border: none; cursor: pointer;">Kostenlos registrieren</button>
   </section>
 </template>
+
+<style scoped>
+.contact-wrapper {
+  padding: 80px 50px;
+  background-color: #f7f3ed;
+}
+
+@media (max-width: 767px) {
+  .contact-wrapper {
+    padding: 40px 20px;
+  }
+}
+</style>
