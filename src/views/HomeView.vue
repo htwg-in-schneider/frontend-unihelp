@@ -1,6 +1,22 @@
 <script setup>
 import { tutors } from '../data.js';
 import TutorCard from '../components/TutorCard.vue';
+import { useAuth0 } from '@auth0/auth0-vue'; 
+import { useRouter } from 'vue-router'; 
+import { watchEffect } from 'vue'; 
+
+const { loginWithRedirect, isAuthenticated } = useAuth0();
+const router = useRouter();
+
+watchEffect(() => {
+  if (isAuthenticated.value) {
+    router.push('/offers');
+  }
+});
+
+const handleLogin = () => {
+  loginWithRedirect();
+};
 </script>
 
 <template>
@@ -16,8 +32,8 @@ import TutorCard from '../components/TutorCard.vue';
       </div>
 
       <div class="hero-actions">
-        <router-link to="/angebote" class="button-hero-yellow">Jetzt kostenlos starten</router-link>
-        <a href="#steps" class="button-hero-yellow">Anmelden</a>
+        <router-link to="/offers" class="button-hero-yellow">Jetzt kostenlos starten</router-link>
+        <button type="button" @click="handleLogin" class="button-hero-yellow">Anmelden</button>
       </div>
     </div>
 
