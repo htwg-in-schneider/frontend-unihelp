@@ -12,7 +12,8 @@ const auth0 = createAuth0({
     authorizationParams: {
         audience: import.meta.env.VITE_AUTH0_AUDIENCE,
         redirect_uri: window.location.origin + window.location.pathname
-    }
+    },
+    cacheLocation: 'localstorage'
 })
 
 const app = createApp(App)

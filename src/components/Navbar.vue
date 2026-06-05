@@ -16,7 +16,7 @@ const closeMenu = () => {
 };
 
 const isDetailView = computed(() => {
-  return route.path.startsWith('/offer/');
+  return route.path.startsWith('/offer/') || route.path === '/profile';
 });
 
 const goBack = () => {

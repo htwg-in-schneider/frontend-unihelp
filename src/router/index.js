@@ -48,6 +48,7 @@ const router = createRouter({
       path: '/profile',
       name: 'profile',
       component: ProfileView,
+      meta: { title: 'Profil' },
       beforeEnter: authGuard
     },
     {
