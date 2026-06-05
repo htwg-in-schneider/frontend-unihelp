@@ -16,7 +16,12 @@ const closeMenu = () => {
 };
 
 const isDetailView = computed(() => {
-  return route.path.startsWith('/offer/') || route.path === '/profile';
+  return route.path.startsWith('/offer/');
+});
+
+const isAppPage = computed(() => {
+  const paths = ['/dashboard', '/offers', '/bookings', '/messages', '/profile'];
+  return paths.includes(route.path) || route.path.startsWith('/offer/');
 });
 
 const goBack = () => {
@@ -25,7 +30,7 @@ const goBack = () => {
 </script>
 
 <template>
-  <nav class="navbar navbar-expand-md px-4 py-3" :class="{ 'border-bottom': isDetailView }"
+  <nav class="navbar navbar-expand-md px-4 py-3" :class="{ 'border-bottom': isDetailView || isAppPage }"
     style="background-color: #f7f4ed; border-color: #dcdcdc !important;">
     <div class="container-fluid d-flex justify-content-between align-items-center">
 
@@ -52,12 +57,14 @@ const goBack = () => {
       </div>
 
       <div v-if="isDetailView" style="width: 35px;"></div>
-      <button v-else class="navbar-toggler custom-toggler" type="button" @click="toggleMenu">
+      <button v-else class="navbar-toggler custom-toggler" type="button" @click="toggleMenu"
+        :style="{ visibility: isAppPage ? 'hidden' : 'visible' }">
         <span class="navbar-toggler-icon"></span>
       </button>
 
       <div v-if="!isDetailView" class="collapse navbar-collapse justify-content-end" :class="{ 'show': isMenuOpen }">
-        <ul class="navbar-nav align-items-center text-center mt-3 mt-md-0 ms-auto desktop-gap">
+
+        <ul v-if="!isAppPage" class="navbar-nav align-items-center text-center mt-3 mt-md-0 ms-auto desktop-gap">
           <li class="nav-item mobile-nav-item">
             <router-link class="nav-link text-dark" to="/offers" @click="closeMenu">Angebote</router-link>
           </li>
@@ -71,7 +78,26 @@ const goBack = () => {
             <a class="nav-link text-dark" href="/#for-tutors" @click="closeMenu">Tutor werden</a>
           </li>
         </ul>
-        <div class="d-flex align-items-center ms-lg-3 mt-3 mt-lg-0">
+
+        <ul v-else class="navbar-nav align-items-center text-center mt-3 mt-md-0 ms-auto desktop-gap d-none d-md-flex">
+          <li class="nav-item mobile-nav-item">
+            <router-link class="nav-link text-dark"
+              :style="route.path === '/dashboard' || route.path === '/offers' ? 'color: #2b487b !important; font-weight: 600;' : ''"
+              to="/dashboard">Entdecken</router-link>
+          </li>
+          <li class="nav-item mobile-nav-item">
+            <router-link class="nav-link text-dark"
+              :style="route.path === '/bookings' ? 'color: #2b487b !important; font-weight: 600;' : ''"
+              to="/bookings">Buchungen</router-link>
+          </li>
+          <li class="nav-item mobile-nav-item">
+            <router-link class="nav-link text-dark"
+              :style="route.path === '/messages' ? 'color: #2b487b !important; font-weight: 600;' : ''"
+              to="/messages">Nachrichten</router-link>
+          </li>
+        </ul>
+
+        <div class="d-flex align-items-center ms-lg-3 mt-3 mt-lg-0" :class="{ 'd-none d-md-flex': isAppPage }">
           <UserMenu />
         </div>
       </div>
