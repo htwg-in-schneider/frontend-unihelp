@@ -92,7 +92,7 @@ async function cancelBooking(id) {
     }
     try {
         const token = await getAccessTokenSilently();
-        const response = await fetch(`http://localhost:8081/api/booking/${id}`, {
+        await fetch(`http://localhost:8081/api/booking/${id}`, {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -102,7 +102,9 @@ async function cancelBooking(id) {
     }
 }
 
-function chatWithUser(name) { }
+function chatWithUser(partnerId, partnerName) {
+    router.push({ path: `/chat/${partnerId}`, query: { name: partnerName } });
+}
 
 async function reportUser(targetOauthId) {
     if (!targetOauthId) return;
@@ -148,8 +150,9 @@ async function reportUser(targetOauthId) {
                     <h6 class="section-heading mb-3 px-2">ANSTEHEND</h6>
                     <div class="d-flex flex-column gap-3 mb-5 px-2">
                         <div v-if="studentBookings.upcoming.length === 0"
-                            class="bg-white rounded-4 shadow-sm border p-4 text-center text-muted">Keine anstehenden
-                            Buchungen.</div>
+                            class="bg-white rounded-4 shadow-sm border p-4 text-center text-muted">
+                            Keine anstehenden Buchungen.
+                        </div>
                         <div v-for="booking in studentBookings.upcoming" :key="booking.id"
                             class="booking-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center gap-3">
@@ -157,7 +160,7 @@ async function reportUser(targetOauthId) {
                                 <div>
                                     <div class="fw-bold text-dark mb-0 lh-1">{{ booking.tutorName }}</div>
                                     <div class="text-dark small mt-1 lh-sm">{{ booking.subject }} · {{ booking.uni
-                                        }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
                                 </div>
                             </div>
                             <div class="d-flex flex-column align-items-end gap-2">
@@ -167,7 +170,8 @@ async function reportUser(targetOauthId) {
                                 <button v-else class="btn-pay-disabled" disabled>BEZAHLEN</button>
 
                                 <div class="d-flex gap-2">
-                                    <button @click="chatWithUser(booking.tutorName)" class="btn-chat">Chatten</button>
+                                    <button @click="chatWithUser(booking.tutorOauthId, booking.tutorName)"
+                                        class="btn-chat">Chatten</button>
 
                                     <div v-if="cancelConfirmId === booking.id" class="d-flex gap-1">
                                         <button @click="cancelBooking(booking.id)" class="btn-confirm-yes">Ja?</button>
@@ -183,8 +187,9 @@ async function reportUser(targetOauthId) {
                     <h6 class="section-heading mt-4 mb-3 px-2">VERGANGEN</h6>
                     <div class="d-flex flex-column gap-3 px-2">
                         <div v-if="studentBookings.past.length === 0"
-                            class="bg-white rounded-4 shadow-sm border p-4 text-center text-muted">Keine vergangenen
-                            Buchungen.</div>
+                            class="bg-white rounded-4 shadow-sm border p-4 text-center text-muted">
+                            Keine vergangenen Buchungen.
+                        </div>
                         <div v-for="booking in studentBookings.past" :key="booking.id"
                             class="booking-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center gap-3">
@@ -192,7 +197,7 @@ async function reportUser(targetOauthId) {
                                 <div>
                                     <div class="fw-bold text-dark mb-0 lh-1">{{ booking.tutorName }}</div>
                                     <div class="text-dark small mt-1 lh-sm">{{ booking.subject }} · {{ booking.uni
-                                        }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
                                 </div>
                             </div>
                             <div class="d-flex flex-column align-items-end gap-2">
@@ -202,7 +207,8 @@ async function reportUser(targetOauthId) {
                                     disabled>BEWERTET</button>
                                 <button v-else @click="payBooking(booking.id)" class="btn-pay">BEZAHLEN</button>
                                 <div class="d-flex gap-2 align-items-center">
-                                    <button @click="chatWithUser(booking.tutorName)" class="btn-chat">Chatten</button>
+                                    <button @click="chatWithUser(booking.tutorOauthId, booking.tutorName)"
+                                        class="btn-chat">Chatten</button>
                                     <button v-if="!reportedUsers.has(booking.tutorOauthId)"
                                         @click="reportUser(booking.tutorOauthId)" class="btn-report">Melden</button>
                                     <span v-else class="text-success small fw-bold mt-1 ms-1">Gemeldet</span>
@@ -216,8 +222,9 @@ async function reportUser(targetOauthId) {
                     <h6 class="section-heading mb-3 px-2">ANSTEHEND</h6>
                     <div class="d-flex flex-column gap-3 mb-5 px-2">
                         <div v-if="tutorBookings.upcoming.length === 0"
-                            class="bg-white rounded-4 shadow-sm border p-4 text-center text-muted">Du hast keine
-                            anstehenden Termine als Tutor.</div>
+                            class="bg-white rounded-4 shadow-sm border p-4 text-center text-muted">
+                            Du hast keine anstehenden Termine als Tutor.
+                        </div>
                         <div v-for="booking in tutorBookings.upcoming" :key="booking.id"
                             class="booking-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center gap-3">
@@ -225,7 +232,7 @@ async function reportUser(targetOauthId) {
                                 <div>
                                     <div class="fw-bold text-dark mb-0 lh-1">{{ booking.studentName }}</div>
                                     <div class="text-dark small mt-1 lh-sm">{{ booking.subject }} · {{ booking.uni
-                                        }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
                                 </div>
                             </div>
                             <div class="d-flex flex-column align-items-end gap-2">
@@ -234,7 +241,8 @@ async function reportUser(targetOauthId) {
                                 <button v-else class="btn-cancel btn-cancel-open" disabled>OFFEN</button>
 
                                 <div class="d-flex gap-2 mt-auto">
-                                    <button @click="chatWithUser(booking.studentName)" class="btn-chat">Chatten</button>
+                                    <button @click="chatWithUser(booking.studentOauthId, booking.studentName)"
+                                        class="btn-chat">Chatten</button>
                                     <div v-if="cancelConfirmId === booking.id" class="d-flex gap-1">
                                         <button @click="cancelBooking(booking.id)" class="btn-confirm-yes">Ja?</button>
                                         <button @click="cancelConfirmId = null" class="btn-confirm-no">Nein</button>
@@ -249,8 +257,9 @@ async function reportUser(targetOauthId) {
                     <h6 class="section-heading mt-4 mb-3 px-2">VERGANGEN</h6>
                     <div class="d-flex flex-column gap-3 px-2">
                         <div v-if="tutorBookings.past.length === 0"
-                            class="bg-white rounded-4 shadow-sm border p-4 text-center text-muted">Keine vergangenen
-                            Termine.</div>
+                            class="bg-white rounded-4 shadow-sm border p-4 text-center text-muted">
+                            Keine vergangenen Termine.
+                        </div>
                         <div v-for="booking in tutorBookings.past" :key="booking.id"
                             class="booking-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center gap-3">
@@ -258,14 +267,15 @@ async function reportUser(targetOauthId) {
                                 <div>
                                     <div class="fw-bold text-dark mb-0 lh-1">{{ booking.studentName }}</div>
                                     <div class="text-dark small mt-1 lh-sm">{{ booking.subject }} · {{ booking.uni
-                                        }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
                                 </div>
                             </div>
                             <div class="d-flex flex-column align-items-end gap-2">
                                 <button v-if="booking.status === 'PAID' || booking.status === 'RATED'" class="btn-paid"
                                     disabled>BEZAHLT</button>
                                 <div class="d-flex gap-2 mt-auto align-items-center">
-                                    <button @click="chatWithUser(booking.studentName)" class="btn-chat">Chatten</button>
+                                    <button @click="chatWithUser(booking.studentOauthId, booking.studentName)"
+                                        class="btn-chat">Chatten</button>
                                     <button v-if="!reportedUsers.has(booking.studentOauthId)"
                                         @click="reportUser(booking.studentOauthId)" class="btn-report">Melden</button>
                                     <span v-else class="text-success small fw-bold mt-1 ms-1">Gemeldet</span>

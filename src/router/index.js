@@ -14,6 +14,8 @@ import PaymentView from '../views/PaymentView.vue';
 import RatingView from '../views/RatingView.vue';
 import ModerationView from '../views/ModerationView.vue';
 import BannedView from '../views/BannedView.vue';
+import MessagesView from '../views/MessagesView.vue';
+import ChatDetailView from '../views/ChatDetailView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -109,7 +111,21 @@ const router = createRouter({
       name: 'banned',
       component: BannedView,
       meta: { title: 'Gesperrt' }
-    }
+    },
+    {
+      path: '/messages',
+      name: 'messages',
+      component: MessagesView,
+      meta: { title: 'Nachrichten' },
+      beforeEnter: authGuard
+    },
+    {
+      path: '/chat/:id',
+      name: 'chat-detail',
+      component: ChatDetailView,
+      meta: { title: 'Chat' },
+      beforeEnter: authGuard
+    },
   ]
 })
 

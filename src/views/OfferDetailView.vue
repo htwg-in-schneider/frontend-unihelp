@@ -200,6 +200,17 @@ async function deleteOfferAsMod() {
   } catch (e) {
   }
 }
+
+function startChatWithTutor() {
+  if (!isAuthenticated.value) {
+    loginWithRedirect({ appState: { targetUrl: route.path } });
+    return;
+  }
+  router.push({
+    path: `/chat/${offer.value.ownerOauthId}`,
+    query: { name: offer.value.ownerName }
+  });
+}
 </script>
 
 <template>
@@ -260,7 +271,7 @@ async function deleteOfferAsMod() {
           </button>
         </div>
 
-        <button class="btn-message-outline w-100 mb-3 text-dark">Nachricht senden</button>
+        <button @click="startChatWithTutor" class="btn-message-outline w-100 mb-3 text-dark">Nachricht senden</button>
 
         <div class="text-center mt-2 pb-2">
           <button v-if="!isReported && !isModerator" @click="reportOffer" class="report-link">⚠ Angebot melden</button>
