@@ -102,7 +102,7 @@ function getFirstName() {
 }
 
 function formatLabel(format) {
-    const map = { ONLINE: 'Online', PRESENCE: 'Präsenz', HYBRID: 'Online & Präsenz' };
+    const map = { ONLINE: 'Online', PRAESENZ: 'Präsenz', HYBRID: 'Online & Präsenz' };
     return map[format] ?? format;
 }
 
@@ -114,10 +114,10 @@ function searchOffers() {
 </script>
 
 <template>
-    <div class="dashboard-wrapper" style="background-color: #f7f4ed; min-height: 100vh; padding-bottom: 80px;">
-        <div class="container py-4 py-lg-5" style="max-width: 1100px;">
+    <div class="dashboard-wrapper">
+        <div class="container py-4 py-lg-5 dashboard-container">
 
-            <div class="mb-3 mt-2 mx-auto" style="max-width: 600px;">
+            <div class="mb-3 mt-2 mx-auto search-container-wrapper">
                 <h1 class="fw-bold text-dark fs-2 mb-3 text-start">Guten Tag, {{ getFirstName() }}</h1>
 
                 <form @submit.prevent="searchOffers" class="search-container position-relative w-100">
@@ -149,7 +149,7 @@ function searchOffers() {
 
                         <div v-for="appointment in upcomingAppointments" :key="appointment.id"
                             class="appointment-card bg-white rounded-4 shadow-sm border d-flex overflow-hidden"
-                            style="cursor: pointer;" @click="router.push('/bookings')">
+                            @click="router.push('/bookings')">
                             <div
                                 class="date-box d-flex flex-column justify-content-center align-items-center bg-white border-end px-3 py-3">
                                 <span class="fs-4 fw-bold text-dark lh-1 mb-1">{{ appointment.dateDay }}</span>
@@ -157,10 +157,10 @@ function searchOffers() {
                             </div>
 
                             <div class="info-box p-3 w-100 position-relative d-flex flex-column justify-content-center">
-                                <div class="fw-bold text-dark fs-6 mb-1 text-truncate pe-5" style="max-width: 90%;">
+                                <div class="fw-bold text-dark fs-6 mb-1 text-truncate pe-5 appointment-subject">
                                     {{ appointment.subject }} · {{ appointment.person }}
                                 </div>
-                                <div class="text-dark small" style="font-weight: 500;">
+                                <div class="text-dark small appointment-time">
                                     <span v-if="appointment.status === 'TUTOR'">{{ appointment.person }} bucht · </span>
                                     {{ appointment.time }} · {{ appointment.format }}
                                 </div>
@@ -187,7 +187,7 @@ function searchOffers() {
                             class="offer-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
                             <div class="pe-3">
                                 <div class="fw-bold text-dark mb-1">{{ offer.module }}</div>
-                                <div class="text-dark small" style="font-weight: 500;">
+                                <div class="text-dark small offer-info">
                                     {{ offer.price }}€/Std. · {{ getBookedCount(offer) }} Buchungen
                                 </div>
                             </div>
@@ -249,9 +249,34 @@ function searchOffers() {
     letter-spacing: 0.5px;
 }
 
+.dashboard-wrapper {
+    padding-bottom: 80px;
+}
+
+.dashboard-container {
+    max-width: 1100px;
+}
+
+.search-container-wrapper {
+    max-width: 600px;
+}
+
 .appointment-card {
     border-color: #e0dcd5 !important;
     transition: transform 0.2s;
+    cursor: pointer;
+}
+
+.appointment-subject {
+    max-width: 90%;
+}
+
+.appointment-time {
+    font-weight: 500;
+}
+
+.offer-info {
+    font-weight: 500;
 }
 
 .appointment-card:hover {

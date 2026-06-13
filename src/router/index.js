@@ -12,6 +12,8 @@ import DashboardView from '../views/DashboardView.vue';
 import BookingsView from '../views/BookingsView.vue';
 import PaymentView from '../views/PaymentView.vue';
 import RatingView from '../views/RatingView.vue';
+import ModerationView from '../views/ModerationView.vue';
+import BannedView from '../views/BannedView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -94,6 +96,19 @@ const router = createRouter({
       component: RatingView,
       meta: { title: 'Bewerten' },
       beforeEnter: authGuard
+    },
+    {
+      path: '/moderation',
+      name: 'moderation',
+      component: ModerationView,
+      meta: { title: 'Moderation' },
+      beforeEnter: authGuard
+    },
+    {
+      path: '/banned',
+      name: 'banned',
+      component: BannedView,
+      meta: { title: 'Gesperrt' }
     }
   ]
 })

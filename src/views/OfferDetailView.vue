@@ -6,32 +6,55 @@ import { useAuth0 } from '@auth0/auth0-vue';
 const route = useRoute();
 const router = useRouter();
 const { isAuthenticated, getAccessTokenSilently, loginWithRedirect } = useAuth0();
-const url = 'http://localhost:8081/api/offer';
+const baseUrl = 'http://localhost:8081';
 
 const offer = ref(null);
 const isLoading = ref(true);
 
 const showBookingForm = ref(false);
+const isReported = ref(false);
+const isModerator = ref(false);
+const showModMenu = ref(false);
 
 const selectedDate = ref(null);
 const selectedAvailabilityIndex = ref(null);
 const bookingMessage = ref('');
 const bookingError = ref('');
 
-onMounted(async () => fetchOffer());
+onMounted(async () => {
+  await fetchOffer();
+  if (isAuthenticated.value) {
+    await checkModeratorRole();
+  }
+});
 
 async function fetchOffer() {
   try {
-    const response = await fetch(url);
+    const response = await fetch(`${baseUrl}/api/offer`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const allOffers = await response.json();
     offer.value = allOffers.find(o => String(o.id) === String(route.params.id)) || null;
   } catch (error) {
-    console.error('Fehler beim Laden des Angebots:', error);
   } finally {
     isLoading.value = false;
+  }
+}
+
+async function checkModeratorRole() {
+  try {
+    const token = await getAccessTokenSilently();
+    const response = await fetch(`${baseUrl}/api/profile`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (response.ok) {
+      const profile = await response.json();
+      if (profile.role === 'MODERATOR' || profile.role === 'ADMIN') {
+        isModerator.value = true;
+      }
+    }
+  } catch (e) {
   }
 }
 
@@ -114,7 +137,6 @@ async function confirmBooking() {
 
   try {
     const token = await getAccessTokenSilently();
-
     const slotIndex = selectedAvailabilityIndex.value;
     const availability = offer.value.availabilities[slotIndex];
 
@@ -122,7 +144,7 @@ async function confirmBooking() {
       throw new Error("Der gewählte Termin hat keine gültige ID aus der Datenbank!");
     }
 
-    const response = await fetch(`http://localhost:8081/api/booking`, {
+    const response = await fetch(`${baseUrl}/api/booking`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -135,15 +157,47 @@ async function confirmBooking() {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Backend meldet Fehler ${response.status}: ${errorText}`);
+      throw new Error(`Backend meldet Fehler`);
     }
 
     router.push('/bookings');
 
   } catch (error) {
-    console.error('Fehler beim Buchen:', error);
-    bookingError.value = error.message || 'Leider gab es einen Fehler bei der Buchung. Bitte versuche es später.';
+    bookingError.value = 'Leider gab es einen Fehler bei der Buchung. Bitte versuche es später.';
+  }
+}
+
+async function reportOffer() {
+  if (!isAuthenticated.value) return;
+  try {
+    const token = await getAccessTokenSilently();
+    await fetch(`${baseUrl}/api/moderation/reports`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        targetType: 'OFFER',
+        targetId: offer.value.id,
+        reason: 'Nutzer hat dieses Angebot gemeldet'
+      })
+    });
+    isReported.value = true;
+  } catch (e) {
+  }
+}
+
+async function deleteOfferAsMod() {
+  try {
+    const token = await getAccessTokenSilently();
+    await fetch(`${baseUrl}/api/moderation/offer/${offer.value.id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    showModMenu.value = false;
+    router.push('/moderation');
+  } catch (e) {
   }
 }
 </script>
@@ -162,10 +216,10 @@ async function confirmBooking() {
           <div class="profile-avatar-large me-3">{{ getInitials(offer.ownerName || 'Tutor') }}</div>
           <div>
             <h2 class="h4 mb-1 fw-bold text-dark">{{ offer.ownerName || 'Tutor' }}</h2>
-            <p class="mb-1 text-muted fw-bold" style="font-size: 14px;">
+            <p class="mb-1 text-muted fw-bold offer-meta">
               {{ offer.course }}, {{ offer.university }}
             </p>
-            <p class="mb-0 text-warning" style="font-size: 14px;">
+            <p class="mb-0 text-warning offer-meta">
               ★★★★★ <span class="text-dark fw-bold ms-1">4,9</span> <span class="text-muted">(62 Bew.)</span>
             </p>
           </div>
@@ -209,8 +263,13 @@ async function confirmBooking() {
         <button class="btn-message-outline w-100 mb-3 text-dark">Nachricht senden</button>
 
         <div class="text-center mt-2 pb-2">
-          <a href="#" class="report-link">⚠ Angebot melden</a>
+          <button v-if="!isReported && !isModerator" @click="reportOffer" class="report-link">⚠ Angebot melden</button>
+          <span v-else-if="isReported && !isModerator" class="text-success fw-bold small">Angebot wurde gemeldet</span>
         </div>
+
+        <button v-if="isModerator" @click="showModMenu = true" class="btn-modal-red w-100 mt-3">Angebot
+          moderieren</button>
+
       </div>
       <div v-else>
 
@@ -249,9 +308,8 @@ async function confirmBooking() {
 
         <div class="mb-4">
           <div class="yellow-label mb-2 text-dark">Nachricht an Tutor (optional)</div>
-          <textarea v-model="bookingMessage" class="form-control" rows="3"
-            placeholder="Ich brauche besonders Hilfe bei..."
-            style="border-color: #cccccc; border-radius: 8px; resize: none;"></textarea>
+          <textarea v-model="bookingMessage" class="form-control message-textarea" rows="3"
+            placeholder="Ich brauche besonders Hilfe bei..."></textarea>
         </div>
 
         <div v-if="bookingError" class="alert alert-danger py-2 small fw-bold mb-3">
@@ -263,12 +321,23 @@ async function confirmBooking() {
         </button>
 
       </div>
-
     </div>
 
     <div v-else class="text-center py-5">
       <h3 class="mb-3 fw-bold text-dark">Angebot wurde nicht gefunden.</h3>
       <router-link to="/offers" class="btn btn-outline-dark px-4 py-2 fw-bold">Zurück zur Übersicht</router-link>
+    </div>
+
+    <div v-if="showModMenu" class="modal-overlay d-flex justify-content-center align-items-center">
+      <div class="custom-modal bg-white p-4 rounded-4 shadow-lg text-center">
+        <h3 class="fw-bold text-dark mb-4 fs-4">Aktion auswählen</h3>
+
+        <div class="d-flex flex-column gap-3">
+          <button @click="router.push(`/offer/edit/${offer.id}`)" class="btn-modal-yellow">Bearbeiten</button>
+          <button @click="deleteOfferAsMod" class="btn-modal-red">Löschen</button>
+          <button @click="showModMenu = false" class="btn-modal-outline mt-2">Abbrechen</button>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -277,6 +346,28 @@ async function confirmBooking() {
 <style scoped>
 .content-wrapper-desktop {
   margin: 0 auto;
+}
+
+.offer-meta {
+  font-size: 14px;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.appointment-subject {
+  max-width: 90%;
+}
+
+.appointment-time {
+  font-weight: 500;
+}
+
+.message-textarea {
+  border-color: #cccccc;
+  border-radius: 8px;
+  resize: none;
 }
 
 .profile-avatar-large {
@@ -345,10 +436,14 @@ async function confirmBooking() {
 }
 
 .report-link {
+  background: none;
+  border: none;
+  padding: 0;
   color: #a81c1c;
   font-size: 13px;
   font-weight: bold;
   text-decoration: underline !important;
+  cursor: pointer;
 }
 
 .report-link:hover {
@@ -397,6 +492,56 @@ async function confirmBooking() {
   background-color: #111827;
   border-color: #111827;
   color: white;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(247, 244, 237, 0.85);
+  z-index: 1050;
+  backdrop-filter: blur(3px);
+}
+
+.custom-modal {
+  border: 1px solid #e0dcd5;
+  width: 90%;
+  max-width: 400px;
+}
+
+.btn-modal-yellow {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #d4a218;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  border: none;
+}
+
+.btn-modal-red {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #dc3545;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  border: none;
+}
+
+.btn-modal-outline {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: transparent;
+  border: 1px solid #424242;
+  color: #111827;
+  font-weight: bold;
+  font-size: 16px;
 }
 
 @media (max-width: 767px) {

@@ -1,11 +1,13 @@
 <script setup>
 import { useAuth0 } from '@auth0/auth0-vue'
 import { onMounted, ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import ProfileActivityCard from '../components/ProfileActivityCard.vue'
 import DeleteModal from '../components/DeleteModal.vue'
 
 const baseUrl = 'http://localhost:8081'
 const { user, isAuthenticated, isLoading, getAccessTokenSilently, logout } = useAuth0()
+const router = useRouter()
 const profileData = ref(null)
 const error = ref('')
 const actionError = ref('')
@@ -22,6 +24,10 @@ const userInitials = computed(() => {
   return user.value?.name ? user.value.name.substring(0, 2).toUpperCase() : 'U'
 })
 
+const isModerator = computed(() => {
+  return profileData.value?.role === 'MODERATOR' || profileData.value?.role === 'ADMIN'
+})
+
 function copyToClipboard(event) {
   event.target.select()
   navigator.clipboard.writeText(event.target.value)
@@ -31,6 +37,8 @@ function getRoleName(constant) {
   switch (constant) {
     case 'ADMIN':
       return 'Administrator'
+    case 'MODERATOR':
+      return 'Moderator'
     case 'REGULAR':
       return 'Regulärer Benutzer'
     default:
@@ -132,18 +140,17 @@ async function confirmDeleteProfile() {
 </script>
 
 <template>
-  <div class="profile-page-wrapper" style="background-color: #f7f4ed; min-height: 100vh; padding-bottom: 80px;">
+  <div class="profile-page-wrapper">
 
     <div v-if="isLoading" class="text-center py-5">
       <div class="spinner-border text-warning" role="status"></div>
     </div>
 
-    <div v-else-if="isAuthenticated && profileData" class="container py-4 py-lg-5" style="max-width: 1100px;">
+    <div v-else-if="isAuthenticated && profileData" class="container py-4 py-lg-5 profile-container">
 
       <div v-if="!isEditing" class="row">
         <div class="col-lg-5 mb-4 mb-lg-0">
-          <div class="bg-white p-4 p-lg-5 rounded-4 shadow-sm border text-center mb-4"
-            style="border-color: #e0dcd5 !important;">
+          <div class="bg-white p-4 p-lg-5 rounded-4 shadow-sm border text-center mb-4 profile-card-border">
             <div class="avatar-circle mx-auto mb-3">{{ userInitials }}</div>
             <h3 class="fw-bold text-dark mb-1 fs-4">{{ profileData.firstName || 'Vorname' }} {{ profileData.lastName ||
               'Nachname' }}</h3>
@@ -152,7 +159,7 @@ async function confirmDeleteProfile() {
               profileData.course || 'Studiengang fehlt' }}</p>
 
             <div class="mb-4">
-              <span class="badge bg-dark px-3 py-2" style="font-size: 13px; font-weight: 600;">{{
+              <span class="badge bg-dark px-3 py-2 role-badge">{{
                 getRoleName(profileData.role) }}</span>
             </div>
 
@@ -171,47 +178,47 @@ async function confirmDeleteProfile() {
               </div>
             </div>
 
-            <button @click="startEditing" class="btn btn-outline-dark w-100 fw-bold py-2" style="border-radius: 8px;">
+            <button @click="startEditing" class="btn btn-outline-dark w-100 fw-bold py-2 btn-edit-profile">
               Profil bearbeiten
             </button>
           </div>
 
           <div class="text-start">
-            <details class="bg-light p-3 rounded border shadow-sm" style="border-color: #e0dcd5 !important;">
-              <summary class="btn btn-sm btn-outline-secondary w-100 fw-bold" style="font-size: 13px;">OAuth2-Debug-Info
+            <details class="bg-light p-3 rounded border shadow-sm debug-box">
+              <summary class="btn btn-sm btn-outline-secondary w-100 fw-bold debug-summary">OAuth2-Debug-Info
                 & Token anzeigen</summary>
               <div class="mt-3">
-                <label class="form-label fw-bold text-dark" style="font-size: 13px;">User (Auth0 Daten):</label>
-                <pre class="bg-white p-3 rounded border text-muted"
-                  style="font-size: 12px; overflow-x: auto;"><code>{{ JSON.stringify(user, null, 2) }}</code></pre>
+                <label class="form-label fw-bold text-dark debug-label">User (Auth0 Daten):</label>
+                <pre class="bg-white p-3 rounded border text-muted debug-pre"><code>{{ JSON.stringify(user, null, 2) }}</code></pre>
 
-                <label class="form-label fw-bold text-dark mt-3" style="font-size: 13px;">Dein Bearer Token (Zum
+                <label class="form-label fw-bold text-dark mt-3 debug-label">Dein Bearer Token (Zum
                   Kopieren klicken):</label>
-                <textarea class="form-control text-muted" rows="4" readonly @click="copyToClipboard"
-                  style="font-size: 12px; cursor: pointer;">{{ bearerToken }}</textarea>
+                <textarea class="form-control text-muted debug-token" rows="4" readonly @click="copyToClipboard">{{ bearerToken }}</textarea>
               </div>
             </details>
           </div>
         </div>
 
         <div class="col-lg-7">
-          <h6 class="text-warning fw-bold mb-3 text-uppercase" style="letter-spacing: 0.5px;">Meine Aktivitäten</h6>
+          <h6 class="text-warning fw-bold mb-3 text-uppercase activities-heading">Meine Aktivitäten</h6>
 
           <ProfileActivityCard icon="✉️" title="Meine Angebote" subtitle="0 aktive Angebote" />
           <ProfileActivityCard icon="📅" title="Buchungen" subtitle="Vergangene & anstehende" />
           <ProfileActivityCard icon="⭐" title="Bewertungen" subtitle="0 Bewertungen erhalten" />
+
+          <div @click="router.push('/moderation')">
+            <ProfileActivityCard v-if="isModerator" icon="👤" title="Moderator Terminal" subtitle="Verwaltung" />
+          </div>
 
         </div>
       </div>
 
       <div v-else class="row justify-content-center">
         <div class="col-12 col-md-10 col-lg-8">
-          <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border position-relative"
-            style="border-color: #e0dcd5 !important;">
+          <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border position-relative profile-card-border">
 
             <button @click="cancelEditing"
-              class="btn btn-light rounded-circle shadow-sm border p-0 d-flex align-items-center justify-content-center position-absolute"
-              style="width: 35px; height: 35px; top: 20px; left: 20px; z-index: 10;">
+              class="btn btn-light rounded-circle shadow-sm border p-0 d-flex align-items-center justify-content-center position-absolute btn-back">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                 class="bi bi-arrow-left" viewBox="0 0 16 16">
                 <path fill-rule="evenodd"
@@ -250,8 +257,7 @@ async function confirmDeleteProfile() {
                 <div class="col-md-6 mb-3">
                   <label class="form-label fw-bold text-dark small mb-1">E-Mail<span
                       class="text-danger">*</span></label>
-                  <input v-model="formData.email" type="email" class="form-control custom-input" required readonly
-                    style="background-color: #f0f0f0; cursor: not-allowed; color: #6c757d;">
+                  <input v-model="formData.email" type="email" class="form-control custom-input input-readonly" required readonly>
                 </div>
               </div>
 
@@ -310,6 +316,67 @@ async function confirmDeleteProfile() {
 </template>
 
 <style scoped>
+.profile-page-wrapper {
+  padding-bottom: 80px;
+}
+
+.profile-container {
+  max-width: 1100px;
+}
+
+.profile-card-border {
+  border-color: #e0dcd5 !important;
+}
+
+.role-badge {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.btn-edit-profile {
+  border-radius: 8px;
+}
+
+.debug-box {
+  border-color: #e0dcd5 !important;
+}
+
+.debug-summary {
+  font-size: 13px;
+}
+
+.debug-label {
+  font-size: 13px;
+}
+
+.debug-pre {
+  font-size: 12px;
+  overflow-x: auto;
+}
+
+.debug-token {
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.activities-heading {
+  letter-spacing: 0.5px;
+}
+
+.btn-back {
+  width: 35px;
+  height: 35px;
+  top: 20px;
+  left: 20px;
+  z-index: 10;
+}
+
+.input-readonly {
+  background-color: #f0f0f0;
+  cursor: not-allowed;
+  color: #6c757d;
+}
+
 .avatar-circle {
   width: 90px;
   height: 90px;

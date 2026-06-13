@@ -13,6 +13,8 @@ const cancelConfirmId = ref(null);
 const studentBookings = ref({ upcoming: [], past: [] });
 const tutorBookings = ref({ upcoming: [], past: [] });
 
+const reportedUsers = ref(new Set());
+
 onMounted(async () => {
     if (isAuthenticated.value) {
         await loadBookings();
@@ -54,6 +56,8 @@ async function loadBookings() {
                 uni: b.offer.university,
                 tutorName: tName,
                 studentName: sName,
+                tutorOauthId: b.tutorOauthId,
+                studentOauthId: b.studentOauthId,
                 initials: isStudent ? getInitials(tName) : getInitials(sName)
             };
 
@@ -65,7 +69,6 @@ async function loadBookings() {
             }
         });
     } catch (error) {
-        console.error('Fehler beim Abrufen der Buchungen:', error);
     } finally {
         isLoading.value = false;
     }
@@ -93,23 +96,41 @@ async function cancelBooking(id) {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${token}` }
         });
-        if (!response.ok) throw new Error('Fehler beim Stornieren');
         cancelConfirmId.value = null;
         await loadBookings();
     } catch (error) {
-        console.error('Fehler:', error);
     }
 }
 
-function chatWithUser(name) { console.log('Chat:', name); }
-function reportUser(name) { console.log('Melden:', name); }
+function chatWithUser(name) { }
+
+async function reportUser(targetOauthId) {
+    if (!targetOauthId) return;
+    try {
+        const token = await getAccessTokenSilently();
+        await fetch('http://localhost:8081/api/moderation/reports', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                targetType: 'USER',
+                targetOauthId: targetOauthId,
+                reason: 'Nutzer wurde aus den Buchungen heraus gemeldet'
+            })
+        });
+        reportedUsers.value.add(targetOauthId);
+    } catch (e) {
+    }
+}
 </script>
 
 <template>
-    <div class="bookings-wrapper" style="background-color: #f7f4ed; min-height: 100vh; padding-bottom: 80px;">
-        <div class="container py-4 py-lg-5" style="max-width: 800px;">
+    <div class="bookings-wrapper">
+        <div class="container py-4 py-lg-5 bookings-container">
 
-            <div class="d-flex gap-2 mb-4 justify-content-center justify-content-md-start px-2">
+            <div class="d-flex gap-2 mb-4 justify-content-center justify-content-md-start px-2 mt-tab-btn">
                 <button @click="setTab('student')" class="tab-btn" :class="activeTab === 'student' ? 'active' : ''">Als
                     Student</button>
                 <button @click="setTab('tutor')" class="tab-btn" :class="activeTab === 'tutor' ? 'active' : ''">Als
@@ -136,15 +157,14 @@ function reportUser(name) { console.log('Melden:', name); }
                                 <div>
                                     <div class="fw-bold text-dark mb-0 lh-1">{{ booking.tutorName }}</div>
                                     <div class="text-dark small mt-1 lh-sm">{{ booking.subject }} · {{ booking.uni
-                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                        }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
                                 </div>
                             </div>
                             <div class="d-flex flex-column align-items-end gap-2">
                                 <button v-if="booking.status === 'PAID'" class="btn-paid" disabled>BEZAHLT</button>
                                 <button v-else-if="booking.status === 'RATED'" class="btn-paid"
                                     disabled>BEWERTET</button>
-                                <button v-else class="btn-pay-disabled" disabled
-                                    title="Zahlung erst nach dem Termin möglich">BEZAHLEN</button>
+                                <button v-else class="btn-pay-disabled" disabled>BEZAHLEN</button>
 
                                 <div class="d-flex gap-2">
                                     <button @click="chatWithUser(booking.tutorName)" class="btn-chat">Chatten</button>
@@ -172,18 +192,20 @@ function reportUser(name) { console.log('Melden:', name); }
                                 <div>
                                     <div class="fw-bold text-dark mb-0 lh-1">{{ booking.tutorName }}</div>
                                     <div class="text-dark small mt-1 lh-sm">{{ booking.subject }} · {{ booking.uni
-                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                        }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
                                 </div>
                             </div>
                             <div class="d-flex flex-column align-items-end gap-2">
                                 <button v-if="booking.status === 'PAID'" @click="rateBooking(booking.id)"
-                                    class="btn-pay" style="background-color: #fcdb39;">BEWERTEN</button>
+                                    class="btn-pay btn-pay-rate">BEWERTEN</button>
                                 <button v-else-if="booking.status === 'RATED'" class="btn-paid"
                                     disabled>BEWERTET</button>
                                 <button v-else @click="payBooking(booking.id)" class="btn-pay">BEZAHLEN</button>
-                                <div class="d-flex gap-2">
+                                <div class="d-flex gap-2 align-items-center">
                                     <button @click="chatWithUser(booking.tutorName)" class="btn-chat">Chatten</button>
-                                    <button @click="reportUser(booking.tutorName)" class="btn-report">Melden</button>
+                                    <button v-if="!reportedUsers.has(booking.tutorOauthId)"
+                                        @click="reportUser(booking.tutorOauthId)" class="btn-report">Melden</button>
+                                    <span v-else class="text-success small fw-bold mt-1 ms-1">Gemeldet</span>
                                 </div>
                             </div>
                         </div>
@@ -203,15 +225,13 @@ function reportUser(name) { console.log('Melden:', name); }
                                 <div>
                                     <div class="fw-bold text-dark mb-0 lh-1">{{ booking.studentName }}</div>
                                     <div class="text-dark small mt-1 lh-sm">{{ booking.subject }} · {{ booking.uni
-                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                        }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
                                 </div>
                             </div>
                             <div class="d-flex flex-column align-items-end gap-2">
-                                <button v-if="booking.status === 'PAID' || booking.status === 'RATED'" class="btn-paid"
-                                    style="background-color: #5edb39; border-color: #4cae2d;" disabled>BEZAHLT</button>
-                                <button v-else class="btn-cancel"
-                                    style="border-color: #dcdcdc; color: #a0a0a0; cursor: default;"
-                                    disabled>OFFEN</button>
+                                <button v-if="booking.status === 'PAID' || booking.status === 'RATED'"
+                                    class="btn-paid btn-paid-tutor" disabled>BEZAHLT</button>
+                                <button v-else class="btn-cancel btn-cancel-open" disabled>OFFEN</button>
 
                                 <div class="d-flex gap-2 mt-auto">
                                     <button @click="chatWithUser(booking.studentName)" class="btn-chat">Chatten</button>
@@ -238,15 +258,17 @@ function reportUser(name) { console.log('Melden:', name); }
                                 <div>
                                     <div class="fw-bold text-dark mb-0 lh-1">{{ booking.studentName }}</div>
                                     <div class="text-dark small mt-1 lh-sm">{{ booking.subject }} · {{ booking.uni
-                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                        }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
                                 </div>
                             </div>
                             <div class="d-flex flex-column align-items-end gap-2">
                                 <button v-if="booking.status === 'PAID' || booking.status === 'RATED'" class="btn-paid"
                                     disabled>BEZAHLT</button>
-                                <div class="d-flex gap-2 mt-auto">
+                                <div class="d-flex gap-2 mt-auto align-items-center">
                                     <button @click="chatWithUser(booking.studentName)" class="btn-chat">Chatten</button>
-                                    <button @click="reportUser(booking.studentName)" class="btn-report">Melden</button>
+                                    <button v-if="!reportedUsers.has(booking.studentOauthId)"
+                                        @click="reportUser(booking.studentOauthId)" class="btn-report">Melden</button>
+                                    <span v-else class="text-success small fw-bold mt-1 ms-1">Gemeldet</span>
                                 </div>
                             </div>
                         </div>
@@ -263,6 +285,10 @@ function reportUser(name) { console.log('Melden:', name); }
     font-weight: 800;
     letter-spacing: 0.5px;
     font-size: 15px;
+}
+
+.mt-tab-btn {
+    margin-top: 50px;
 }
 
 .tab-btn {
@@ -339,6 +365,21 @@ function reportUser(name) { console.log('Melden:', name); }
     cursor: default;
 }
 
+.btn-paid-tutor {
+    background-color: #5edb39;
+    border-color: #4cae2d;
+}
+
+.btn-pay-rate {
+    background-color: #fcdb39;
+}
+
+.btn-cancel-open {
+    border-color: #dcdcdc;
+    color: #a0a0a0;
+    cursor: default;
+}
+
 .btn-chat {
     background-color: transparent;
     color: #424242;
@@ -391,6 +432,16 @@ function reportUser(name) { console.log('Melden:', name); }
     font-size: 12px;
     padding: 4px 12px;
     cursor: pointer;
+}
+
+.bookings-wrapper {
+    padding-bottom: 80px;
+    background-color: #f7f4ed;
+    min-height: 100vh;
+}
+
+.bookings-container {
+    max-width: 800px;
 }
 
 @media (max-width: 400px) {

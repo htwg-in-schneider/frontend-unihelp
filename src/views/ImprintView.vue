@@ -1,5 +1,5 @@
 <template>
-    <div class="container py-5" style="max-width: 800px; min-height: 70vh;">
+    <div class="container py-5 content-wrapper">
         <h1 class="fw-bold mb-4 text-dark">Impressum</h1>
 
         <div class="card border-0 shadow-sm p-4 bg-white rounded-4">
@@ -24,3 +24,10 @@
         </div>
     </div>
 </template>
+
+<style scoped>
+.content-wrapper {
+    max-width: 800px;
+    min-height: 70vh;
+}
+</style>

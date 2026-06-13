@@ -13,7 +13,7 @@ defineEmits(['confirm', 'cancel']);
                 </svg>
             </div>
             <h4 class="fw-bold text-danger mb-3">Konto wirklich löschen?</h4>
-            <p class="text-muted big mb-4 px-2" style="line-height: 1.5;">
+            <p class="text-muted big mb-4 px-2 modal-text">
                 Du hast <strong>30 Tage</strong> Zeit, dein Konto widerherzustellen.<br> Danach wird es permanent
                 gelöscht.
             </p>
@@ -69,5 +69,9 @@ defineEmits(['confirm', 'cancel']);
 
 .btn-white-border:hover {
     background-color: #f9f9f9;
+}
+
+.modal-text {
+    line-height: 1.5;
 }
 </style>

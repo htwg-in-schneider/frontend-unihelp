@@ -148,19 +148,18 @@ function sendMail() {
   </section>
 
   <section id="contact" class="contact-wrapper">
-    <div class="container" style="max-width: 1000px;">
+    <div class="container contact-container">
       <div class="row align-items-center">
 
         <div class="col-md-5 mb-4 mb-md-0 text-start pe-md-5">
           <p class="section-label mb-2">Kontakt</p>
           <h2 class="section-title fw-bold mb-3">Hast du Fragen?</h2>
-          <p class="section-subtitle mb-4 text-muted" style="line-height: 1.6;">
+          <p class="section-subtitle mb-4 text-muted contact-subtitle">
             Egal ob es um die Registrierung, Probleme bei einer Buchung oder allgemeines Feedback geht – schreib uns
             einfach eine kurze Nachricht!
           </p>
           <div class="d-flex align-items-center gap-3">
-            <div
-              style="background-color: #e9ecef; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center;">
+            <div class="contact-icon">
               ✉️
             </div>
             <span class="fw-bold text-dark">unihelp123@proton.me</span>
@@ -168,25 +167,22 @@ function sendMail() {
         </div>
 
         <div class="col-md-7">
-          <form @submit.prevent="sendMail" class="shadow-sm"
-            style="background: white; padding: 35px; border-radius: 16px; border: 1px solid #e0dcd5;">
-            <div style="margin-bottom: 20px; text-align: left;">
-              <label style="font-weight: 600; margin-bottom: 8px; color: #424242; font-size: 14px;">Betreff</label>
+          <form @submit.prevent="sendMail" class="shadow-sm contact-form">
+            <div class="contact-field">
+              <label class="contact-label">Betreff</label>
               <input v-model="contact.subject" type="text" placeholder="z.B. Frage zur Registrierung" required
-                style="padding: 12px 15px; border-radius: 8px; border: 1px solid #dcdcdc; width: 100%; outline: none; background-color: #fafafa;"
-                onfocus="this.style.backgroundColor='#fff'; this.style.borderColor='#d4a218';"
-                onblur="this.style.backgroundColor='#fafafa'; this.style.borderColor='#dcdcdc';" />
+                class="contact-input"
+                @focus="$event.target.style.backgroundColor = '#fff'; $event.target.style.borderColor = '#d4a218';"
+                @blur="$event.target.style.backgroundColor = '#fafafa'; $event.target.style.borderColor = '#dcdcdc';" />
             </div>
-            <div style="margin-bottom: 25px; text-align: left;">
-              <label style="font-weight: 600; margin-bottom: 8px; color: #424242; font-size: 14px;">Deine
-                Nachricht</label>
+            <div class="contact-field contact-field-last">
+              <label class="contact-label">Deine Nachricht</label>
               <textarea v-model="contact.body" rows="4" placeholder="Wie können wir dir helfen?" required
-                style="padding: 12px 15px; border-radius: 8px; border: 1px solid #dcdcdc; width: 100%; outline: none; resize: vertical; background-color: #fafafa;"
-                onfocus="this.style.backgroundColor='#fff'; this.style.borderColor='#d4a218';"
-                onblur="this.style.backgroundColor='#fafafa'; this.style.borderColor='#dcdcdc';"></textarea>
+                class="contact-input contact-textarea"
+                @focus="$event.target.style.backgroundColor = '#fff'; $event.target.style.borderColor = '#d4a218';"
+                @blur="$event.target.style.backgroundColor = '#fafafa'; $event.target.style.borderColor = '#dcdcdc';"></textarea>
             </div>
-            <button type="submit" class="button-hero-yellow"
-              style="width: 100%; margin: 0; padding: 14px; border-radius: 8px;">Nachricht senden</button>
+            <button type="submit" class="button-hero-yellow contact-submit">Nachricht senden</button>
           </form>
         </div>
 
@@ -198,7 +194,7 @@ function sendMail() {
     <h2>Bereit loszulegen?</h2>
     <p>Registriere dich kostenlos und finde noch heute die passende Nachhilfe oder werde selbst Tutor.</p>
     <br>
-    <button @click="handleLogin" class="button-register-white" style="border: none; cursor: pointer;">Kostenlos
+    <button @click="handleLogin" class="button-register-white cta-btn">Kostenlos
       registrieren</button>
   </section>
 </template>
@@ -207,6 +203,73 @@ function sendMail() {
 .contact-wrapper {
   padding: 80px 50px;
   background-color: #f7f3ed;
+}
+
+.contact-container {
+  max-width: 1000px;
+}
+
+.contact-icon {
+  background-color: #e9ecef;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.contact-form {
+  background: white;
+  padding: 35px;
+  border-radius: 16px;
+  border: 1px solid #e0dcd5;
+}
+
+.contact-field {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.contact-field-last {
+  margin-bottom: 25px;
+}
+
+.contact-label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #424242;
+  font-size: 14px;
+  display: block;
+}
+
+.contact-input {
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1px solid #dcdcdc;
+  width: 100%;
+  outline: none;
+  background-color: #fafafa;
+}
+
+.contact-textarea {
+  resize: vertical;
+}
+
+.contact-submit {
+  width: 100%;
+  margin: 0;
+  padding: 14px;
+  border-radius: 8px;
+}
+
+.cta-btn {
+  border: none;
+  cursor: pointer;
+}
+
+.contact-subtitle {
+  line-height: 1.6;
 }
 
 @media (max-width: 767px) {

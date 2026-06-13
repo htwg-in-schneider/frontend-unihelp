@@ -71,7 +71,7 @@ function toggleSearch(term) {
 </script>
 
 <template>
-  <div class="offer-catalog-view" style="border-top: 1px solid #e0dcd5;">
+  <div class="offer-catalog-view">
     <div class="container py-4 content-wrapper-desktop">
 
       <div class="search-section mb-4 mt-2 px-1">
@@ -143,6 +143,10 @@ function toggleSearch(term) {
 </template>
 
 <style scoped>
+.offer-catalog-view {
+  border-top: 1px solid #e0dcd5;
+}
+
 .content-wrapper-desktop {
   max-width: 1100px;
   margin: 0 auto;

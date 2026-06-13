@@ -52,14 +52,13 @@ async function saveOffer() {
 </script>
 
 <template>
-    <div class="form-focus-view" style="background-color: #f7f4ed; min-height: 100vh;">
+    <div class="form-focus-view">
         <div class="container py-5 form-container">
 
             <div class="form-card shadow-sm mb-5">
                 <form @submit.prevent="saveOffer">
 
-                    <div class="visibility-box mb-4 p-3 rounded"
-                        style="background-color: #f8f9fa; border: 1px solid #e0e0e0;">
+                    <div class="visibility-box mb-4 p-3 rounded">
                         <label class="fw-bold d-block mb-2 text-dark">Sichtbarkeit des Angebots</label>
                         <div class="form-check form-switch d-flex align-items-center m-0 p-0">
                             <input class="form-check-input focus-switch m-0 me-3" type="checkbox" role="switch"
@@ -116,7 +115,7 @@ async function saveOffer() {
                         </div>
                     </div>
 
-                    <div class="mb-4 p-4 rounded" style="background-color: #f8f9fa; border: 1px solid #e0e0e0;">
+                    <div class="mb-4 p-4 rounded availability-box">
                         <label class="form-label fw-bold text-dark d-block mb-3">Verfügbare Termine<span
                                 class="text-danger">*</span></label>
 
@@ -136,16 +135,15 @@ async function saveOffer() {
                             </div>
                             <div class="col-md-2">
                                 <button type="button" @click="removeAvailability(index)"
-                                    class="btn btn-outline-danger w-100 d-flex justify-content-center align-items-center"
-                                    style="height: 48px; border-radius: 10px;"
+                                    class="btn btn-outline-danger w-100 d-flex justify-content-center align-items-center btn-delete-slot"
                                     :disabled="offer.availabilities.length === 1" title="Termin entfernen">
                                     Löschen
                                 </button>
                             </div>
                         </div>
 
-                        <button type="button" @click="addAvailability" class="btn btn-outline-secondary mt-2 fw-bold"
-                            style="border-radius: 10px;">
+                        <button type="button" @click="addAvailability"
+                            class="btn btn-outline-secondary mt-2 fw-bold btn-add-slot">
                             + Weiteren Termin hinzufügen
                         </button>
                     </div>
@@ -172,9 +170,32 @@ async function saveOffer() {
 </template>
 
 <style scoped>
+.form-focus-view {
+    background-color: #f7f4ed;
+}
+
 .form-container {
     max-width: 800px;
     margin: 0 auto;
+}
+
+.visibility-box {
+    background-color: #f8f9fa;
+    border: 1px solid #e0e0e0;
+}
+
+.availability-box {
+    background-color: #f8f9fa;
+    border: 1px solid #e0e0e0;
+}
+
+.btn-delete-slot {
+    height: 48px;
+    border-radius: 10px;
+}
+
+.btn-add-slot {
+    border-radius: 10px;
 }
 
 .form-card {

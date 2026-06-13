@@ -125,7 +125,7 @@ async function submitRating() {
                     <div class="avatar-circle-large">{{ bookingDetails.initials }}</div>
                     <div>
                         <h3 class="fw-bold text-dark mb-0 fs-4">{{ bookingDetails.tutorName }}</h3>
-                        <div class="text-muted fw-bold" style="font-size: 15px;">
+                        <div class="text-muted fw-bold booking-info">
                             {{ bookingDetails.subject }} - {{ bookingDetails.date }}
                         </div>
                     </div>
@@ -155,9 +155,8 @@ async function submitRating() {
                 </div>
 
                 <div class="mb-4">
-                    <div class="fw-bold text-dark mb-2" style="font-size: 15px;">Kommentar (optional)</div>
-                    <textarea v-model="comment" class="form-control" rows="4" placeholder="Wie war die Nachhilfestunde?"
-                        style="border-color: #cccccc; border-radius: 8px; resize: none;"></textarea>
+                    <div class="fw-bold text-dark mb-2 comment-label">Kommentar (optional)</div>
+                    <textarea v-model="comment" class="form-control comment-textarea" rows="4" placeholder="Wie war die Nachhilfestunde?"></textarea>
                 </div>
 
                 <div v-if="errorMessage" class="text-danger fw-bold small mb-3 text-center">
@@ -178,6 +177,20 @@ async function submitRating() {
 <style scoped>
 .content-wrapper-desktop {
     margin: 0 auto;
+}
+
+.booking-info {
+    font-size: 15px;
+}
+
+.comment-label {
+    font-size: 15px;
+}
+
+.comment-textarea {
+    border-color: #cccccc;
+    border-radius: 8px;
+    resize: none;
 }
 
 .yellow-label {

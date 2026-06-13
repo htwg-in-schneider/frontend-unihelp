@@ -102,22 +102,21 @@ async function processPayment() {
             <div v-else>
                 <div class="mb-4">
                     <div class="yellow-label mb-2">ZU BEZAHLEN</div>
-                    <div class="bg-white rounded-3 border py-4 d-flex flex-column align-items-center"
-                        style="border-color: #cccccc !important;">
+                    <div class="bg-white rounded-3 border py-4 d-flex flex-column align-items-center payment-summary-box">
 
                         <div class="d-flex align-items-baseline mb-4">
-                            <span class="fw-bold text-dark me-1" style="font-size: 1.5rem;">€</span>
-                            <span class="fw-bold text-dark lh-1" style="font-size: 4rem; letter-spacing: -1px;">{{
+                            <span class="fw-bold text-dark me-1 price-currency">€</span>
+                            <span class="fw-bold text-dark lh-1 price-amount">{{
                                 bookingDetails.price.toFixed(2).replace('.', ',') }}</span>
-                            <span class="text-muted ms-2 fw-bold" style="font-size: 15px;">/ einmalig</span>
+                            <span class="text-muted ms-2 fw-bold price-label">/ einmalig</span>
                         </div>
 
                         <div class="d-flex align-items-center gap-3">
                             <div class="avatar-circle">{{ bookingDetails.initials }}</div>
                             <div class="text-start">
-                                <div class="fw-bold text-dark mb-0" style="font-size: 1.15rem;">{{
+                                <div class="fw-bold text-dark mb-0 tutor-name">{{
                                     bookingDetails.tutorName }}</div>
-                                <div class="text-muted fw-bold" style="font-size: 0.95rem;">{{ bookingDetails.subject }}
+                                <div class="text-muted fw-bold booking-details">{{ bookingDetails.subject }}
                                     -
                                     {{ bookingDetails.date }}</div>
                             </div>
@@ -184,7 +183,7 @@ async function processPayment() {
                             :class="{ 'selected-method': selectedMethod === 'googlepay' }">
                             <div class="d-flex align-items-center gap-3">
                                 <img src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg"
-                                    alt="Google Pay Logo" class="method-logo" style="height: 18px;">
+                                    alt="Google Pay Logo" class="method-logo method-logo-gpay">
                                 <span class="fw-bold fs-5 text-dark">GooglePay</span>
                             </div>
                             <input type="radio" value="googlepay" v-model="selectedMethod" name="payment"
@@ -209,6 +208,35 @@ async function processPayment() {
 <style scoped>
 .content-wrapper-desktop {
     margin: 0 auto;
+}
+
+.payment-summary-box {
+    border-color: #cccccc !important;
+}
+
+.price-currency {
+    font-size: 1.5rem;
+}
+
+.price-amount {
+    font-size: 4rem;
+    letter-spacing: -1px;
+}
+
+.price-label {
+    font-size: 15px;
+}
+
+.tutor-name {
+    font-size: 1.15rem;
+}
+
+.booking-details {
+    font-size: 0.95rem;
+}
+
+.method-logo-gpay {
+    height: 18px;
 }
 
 .yellow-label {
