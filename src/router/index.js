@@ -9,6 +9,9 @@ import ProfileView from '../views/ProfileView.vue';
 import ImprintView from '../views/ImprintView.vue';
 import PrivacyView from '../views/PrivacyView.vue';
 import DashboardView from '../views/DashboardView.vue';
+import BookingsView from '../views/BookingsView.vue';
+import PaymentView from '../views/PaymentView.vue';
+import RatingView from '../views/RatingView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -69,6 +72,27 @@ const router = createRouter({
       name: 'dashboard',
       component: DashboardView,
       meta: { title: 'Dashboard' },
+      beforeEnter: authGuard
+    },
+    {
+      path: '/bookings',
+      name: 'bookings',
+      component: BookingsView,
+      meta: { title: 'Buchungen' },
+      beforeEnter: authGuard
+    },
+    {
+      path: '/payment/:id',
+      name: 'payment',
+      component: PaymentView,
+      meta: { title: 'Bezahlen' },
+      beforeEnter: authGuard
+    },
+    {
+      path: '/rate/:id',
+      name: 'rate',
+      component: RatingView,
+      meta: { title: 'Bewerten' },
       beforeEnter: authGuard
     }
   ]

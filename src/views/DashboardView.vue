@@ -16,6 +16,7 @@ onMounted(() => {
     if (isAuthenticated.value) {
         loadProfile();
         fetchMyOffers();
+        fetchUpcomingAppointments();
     }
 });
 
@@ -23,8 +24,41 @@ watch(isAuthenticated, (newVal) => {
     if (newVal) {
         loadProfile();
         fetchMyOffers();
+        fetchUpcomingAppointments();
     }
 });
+
+async function fetchUpcomingAppointments() {
+    try {
+        const token = await getAccessTokenSilently();
+        const response = await fetch(`${baseUrl}/api/booking`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.ok) {
+            const allBookings = await response.json();
+            const now = new Date();
+
+            upcomingAppointments.value = allBookings
+                .filter(b => new Date(`${b.availability.date}T${b.availability.startTime}`) >= now)
+                .map(b => {
+                    const date = new Date(b.availability.date);
+                    const isStudent = b.studentOauthId === user.value?.sub;
+                    return {
+                        id: b.id,
+                        dateDay: date.toLocaleDateString('de-DE', { day: '2-digit' }),
+                        dateMonth: date.toLocaleDateString('de-DE', { month: 'short' }).toUpperCase(),
+                        subject: b.offer.module,
+                        person: isStudent ? (b.tutorName || 'Tutor') : (b.studentName || 'Student'),
+                        status: isStudent ? 'GEBUCHT' : 'TUTOR',
+                        time: b.availability.startTime.substring(0, 5),
+                        format: formatLabel(b.offer.format)
+                    };
+                });
+        }
+    } catch (error) {
+        console.error('Fehler beim Laden der Termine:', error);
+    }
+}
 
 async function loadProfile() {
     try {
@@ -58,36 +92,24 @@ function getBookedCount(offer) {
 }
 
 function getFirstName() {
-    if (profileData.value && profileData.value.firstName) {
-        return profileData.value.firstName;
-    }
-    if (user.value?.given_name) {
-        return user.value.given_name;
-    }
+    if (profileData.value && profileData.value.firstName) return profileData.value.firstName;
+    if (user.value?.given_name) return user.value.given_name;
     if (user.value?.name) {
         const nameStr = user.value.name;
-        if (nameStr.includes('@')) {
-            return nameStr.split('@')[0];
-        }
-        return nameStr.split(' ')[0];
+        return nameStr.includes('@') ? nameStr.split('@')[0] : nameStr.split(' ')[0];
     }
     return 'Student';
 }
 
-function editOffer(id) {
-    router.push(`/offer/edit/${id}`);
+function formatLabel(format) {
+    const map = { ONLINE: 'Online', PRESENCE: 'Präsenz', HYBRID: 'Online & Präsenz' };
+    return map[format] ?? format;
 }
 
-function createNewOffer() {
-    router.push('/offer/new');
-}
-
+function editOffer(id) { router.push(`/offer/edit/${id}`); }
+function createNewOffer() { router.push('/offer/new'); }
 function searchOffers() {
-    if (searchQuery.value.trim() !== '') {
-        router.push({ path: '/offers', query: { search: searchQuery.value } });
-    } else {
-        router.push('/offers');
-    }
+    router.push({ path: '/offers', query: searchQuery.value ? { search: searchQuery.value } : {} });
 }
 </script>
 
@@ -114,7 +136,7 @@ function searchOffers() {
 
             <hr class="mb-4 border-secondary opacity-25">
 
-            <div class="row">
+            <div class="row g-5">
 
                 <div class="col-lg-6 mb-4 mb-lg-0 pe-lg-4">
                     <h6 class="section-heading mb-3">NÄCHSTE TERMINE</h6>
@@ -126,7 +148,8 @@ function searchOffers() {
                         </div>
 
                         <div v-for="appointment in upcomingAppointments" :key="appointment.id"
-                            class="appointment-card bg-white rounded-4 shadow-sm border d-flex overflow-hidden">
+                            class="appointment-card bg-white rounded-4 shadow-sm border d-flex overflow-hidden"
+                            style="cursor: pointer;" @click="router.push('/bookings')">
                             <div
                                 class="date-box d-flex flex-column justify-content-center align-items-center bg-white border-end px-3 py-3">
                                 <span class="fs-4 fw-bold text-dark lh-1 mb-1">{{ appointment.dateDay }}</span>
@@ -186,11 +209,8 @@ function searchOffers() {
                             <span class="btn-text">Neues Angebot erstellen</span>
                         </button>
                     </div>
-
                 </div>
-
             </div>
-
         </div>
     </div>
 </template>

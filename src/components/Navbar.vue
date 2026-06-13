@@ -16,12 +16,21 @@ const closeMenu = () => {
 };
 
 const isDetailView = computed(() => {
-  return route.path.startsWith('/offer/');
+  return route.path.startsWith('/offer/') ||
+    route.path.startsWith('/payment/') ||
+    route.path.startsWith('/rate/');
+});
+
+const showCenteredTitle = computed(() => {
+  return isAppPage.value && route.path !== '/dashboard';
 });
 
 const isAppPage = computed(() => {
   const paths = ['/dashboard', '/offers', '/bookings', '/messages', '/profile'];
-  return paths.includes(route.path) || route.path.startsWith('/offer/');
+  return paths.includes(route.path) ||
+    route.path.startsWith('/offer/') ||
+    route.path.startsWith('/payment/') ||
+    route.path.startsWith('/rate/');
 });
 
 const goBack = () => {
@@ -30,77 +39,92 @@ const goBack = () => {
 </script>
 
 <template>
-  <nav class="navbar navbar-expand-md px-4 py-3" :class="{ 'border-bottom': isDetailView || isAppPage }"
+  <nav class="navbar navbar-expand-md px-4 py-3 position-relative"
+    :class="{ 'border-bottom': isDetailView || isAppPage, 'navbar-fixed-height': showCenteredTitle }"
     style="background-color: #f7f4ed; border-color: #dcdcdc !important;">
     <div class="container-fluid d-flex justify-content-between align-items-center">
 
-      <div v-if="isDetailView" class="d-flex align-items-center" style="width: 35px;">
-        <button @click="goBack"
-          class="btn btn-light rounded-circle d-flex align-items-center justify-content-center p-0 shadow-sm"
-          style="width: 35px; height: 35px; border: 1px solid #dcdcdc; background-color: #fff;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left"
-            viewBox="0 0 16 16">
-            <path fill-rule="evenodd"
-              d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
-          </svg>
-        </button>
-      </div>
-      <div v-else class="d-md-none" style="width: 35px;"></div>
+      <div class="d-flex align-items-center" style="z-index: 10;">
+        <div v-if="isDetailView" class="me-3">
+          <button @click="goBack"
+            class="btn btn-light rounded-circle d-flex align-items-center justify-content-center p-0 shadow-sm"
+            style="width: 35px; height: 35px; border: 1px solid #dcdcdc; background-color: #fff;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+              class="bi bi-chevron-left" viewBox="0 0 16 16">
+              <path fill-rule="evenodd"
+                d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
+            </svg>
+          </button>
+        </div>
 
-      <div class="text-center mx-auto d-flex flex-column align-items-center">
-        <router-link class="navbar-brand fw-bold text-dark text-decoration-none mx-0 p-0 m-0"
-          :class="isDetailView ? 'fs-5' : 'fs-4'" to="/" @click="closeMenu"
-          style="line-height: 1;">UniHelp</router-link>
-
-        <div v-if="isDetailView" class="fw-bold fs-4 text-dark mt-1" style="line-height: 1;">{{ route.meta.title ||
-          'Angebot' }}</div>
+        <router-link class="navbar-brand fw-bold text-dark text-decoration-none mx-0 p-0 m-0 fs-4" to="/"
+          @click="closeMenu" :class="{ 'd-none d-md-block': showCenteredTitle }" style="line-height: 1;">
+          UniHelp
+        </router-link>
       </div>
 
-      <div v-if="isDetailView" style="width: 35px;"></div>
-      <button v-else class="navbar-toggler custom-toggler" type="button" @click="toggleMenu"
-        :style="{ visibility: isAppPage ? 'hidden' : 'visible' }">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-
-      <div v-if="!isDetailView" class="collapse navbar-collapse justify-content-end" :class="{ 'show': isMenuOpen }">
-
-        <ul v-if="!isAppPage" class="navbar-nav align-items-center text-center mt-3 mt-md-0 ms-auto desktop-gap">
-          <li class="nav-item mobile-nav-item">
-            <router-link class="nav-link text-dark" to="/offers" @click="closeMenu">Angebote</router-link>
-          </li>
-          <li class="nav-item mobile-nav-item">
-            <a class="nav-link text-dark" href="/#steps" @click="closeMenu">Ablauf</a>
-          </li>
-          <li class="nav-item mobile-nav-item">
-            <a class="nav-link text-dark" href="/#for-students" @click="closeMenu">Für Studenten</a>
-          </li>
-          <li class="nav-item mobile-nav-item">
-            <a class="nav-link text-dark" href="/#for-tutors" @click="closeMenu">Tutor werden</a>
-          </li>
-        </ul>
-
-        <ul v-else class="navbar-nav align-items-center text-center mt-3 mt-md-0 ms-auto desktop-gap d-none d-md-flex">
-          <li class="nav-item mobile-nav-item">
-            <router-link class="nav-link text-dark"
-              :style="route.path === '/dashboard' || route.path === '/offers' ? 'color: #2b487b !important; font-weight: 600;' : ''"
-              to="/dashboard">Entdecken</router-link>
-          </li>
-          <li class="nav-item mobile-nav-item">
-            <router-link class="nav-link text-dark"
-              :style="route.path === '/bookings' ? 'color: #2b487b !important; font-weight: 600;' : ''"
-              to="/bookings">Buchungen</router-link>
-          </li>
-          <li class="nav-item mobile-nav-item">
-            <router-link class="nav-link text-dark"
-              :style="route.path === '/messages' ? 'color: #2b487b !important; font-weight: 600;' : ''"
-              to="/messages">Nachrichten</router-link>
-          </li>
-        </ul>
-
-        <div class="d-flex align-items-center ms-lg-3 mt-3 mt-lg-0" :class="{ 'd-none d-md-flex': isAppPage }">
-          <UserMenu />
+      <div v-if="showCenteredTitle" class="position-absolute start-50 translate-middle-x text-center d-md-none"
+        style="z-index: 5;">
+        <router-link class="navbar-brand fw-bold text-dark text-decoration-none mx-0 p-0 m-0 d-block" to="/dashboard"
+          @click="closeMenu" style="line-height: 1; font-size: 17px;">UniHelp</router-link>
+        <div class="fw-bold text-dark fs-4" style="line-height: 1.2;">
+          {{ route.meta.title || 'Angebot' }}
         </div>
       </div>
+      <div v-if="showCenteredTitle" class="position-absolute start-50 translate-middle-x text-center d-none d-md-block"
+        style="z-index: 5;">
+        <div class="fw-bold fs-4 text-dark" style="line-height: 1;">
+          {{ route.meta.title || 'Angebot' }}
+        </div>
+      </div>
+
+      <div style="z-index: 10;">
+        <button v-if="!isAppPage" class="navbar-toggler custom-toggler" type="button" @click="toggleMenu">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div v-if="!isDetailView" class="collapse navbar-collapse justify-content-end" :class="{ 'show': isMenuOpen }">
+
+          <ul v-if="!isAppPage" class="navbar-nav align-items-center text-center mt-3 mt-md-0 ms-auto desktop-gap">
+            <li class="nav-item mobile-nav-item">
+              <router-link class="nav-link text-dark" to="/offers" @click="closeMenu">Angebote</router-link>
+            </li>
+            <li class="nav-item mobile-nav-item">
+              <a class="nav-link text-dark" href="/#steps" @click="closeMenu">Ablauf</a>
+            </li>
+            <li class="nav-item mobile-nav-item">
+              <a class="nav-link text-dark" href="/#for-students" @click="closeMenu">Für Studenten</a>
+            </li>
+            <li class="nav-item mobile-nav-item">
+              <a class="nav-link text-dark" href="/#for-tutors" @click="closeMenu">Tutor werden</a>
+            </li>
+          </ul>
+
+          <ul v-else
+            class="navbar-nav align-items-center text-center mt-3 mt-md-0 ms-auto desktop-gap d-none d-md-flex">
+            <li class="nav-item mobile-nav-item">
+              <router-link class="nav-link text-dark"
+                :style="route.path === '/dashboard' || route.path === '/offers' ? 'color: #2b487b !important; font-weight: 600;' : ''"
+                to="/dashboard">Entdecken</router-link>
+            </li>
+            <li class="nav-item mobile-nav-item">
+              <router-link class="nav-link text-dark"
+                :style="route.path === '/bookings' ? 'color: #2b487b !important; font-weight: 600;' : ''"
+                to="/bookings">Buchungen</router-link>
+            </li>
+            <li class="nav-item mobile-nav-item">
+              <router-link class="nav-link text-dark"
+                :style="route.path === '/messages' ? 'color: #2b487b !important; font-weight: 600;' : ''"
+                to="/messages">Nachrichten</router-link>
+            </li>
+          </ul>
+
+          <div class="d-flex align-items-center ms-lg-3 mt-3 mt-lg-0" :class="{ 'd-none d-md-flex': isAppPage }">
+            <UserMenu />
+          </div>
+        </div>
+      </div>
+
     </div>
   </nav>
 </template>
@@ -117,6 +141,10 @@ const goBack = () => {
 }
 
 @media (max-width: 767px) {
+  .navbar-fixed-height {
+    min-height: 64px;
+  }
+
   .navbar-collapse {
     background-color: #f7f4ed;
     border-top: 1px solid #e0dcd5;

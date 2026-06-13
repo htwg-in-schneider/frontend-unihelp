@@ -1,0 +1,401 @@
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuth0 } from '@auth0/auth0-vue';
+
+const router = useRouter();
+const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
+
+const activeTab = ref('student');
+const isLoading = ref(true);
+const cancelConfirmId = ref(null);
+
+const studentBookings = ref({ upcoming: [], past: [] });
+const tutorBookings = ref({ upcoming: [], past: [] });
+
+onMounted(async () => {
+    if (isAuthenticated.value) {
+        await loadBookings();
+    } else {
+        isLoading.value = false;
+    }
+});
+
+async function loadBookings() {
+    try {
+        const token = await getAccessTokenSilently();
+        const response = await fetch('http://localhost:8081/api/booking', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (!response.ok) throw new Error('Fehler beim Laden der Buchungen');
+
+        const allBookings = await response.json();
+        const now = new Date();
+
+        studentBookings.value = { upcoming: [], past: [] };
+        tutorBookings.value = { upcoming: [], past: [] };
+
+        allBookings.forEach(b => {
+            const bookingDate = new Date(`${b.availability.date}T${b.availability.startTime}`);
+            const isPast = bookingDate < now;
+            const isStudent = b.studentOauthId === user.value?.sub;
+            const isTutor = b.tutorOauthId === user.value?.sub;
+
+            const tName = b.tutorName || 'Tutor';
+            const sName = b.studentName || 'Student';
+
+            const formattedBooking = {
+                id: b.id,
+                status: b.status,
+                date: bookingDate.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' }),
+                time: b.availability.startTime.substring(0, 5),
+                subject: b.offer.module,
+                uni: b.offer.university,
+                tutorName: tName,
+                studentName: sName,
+                initials: isStudent ? getInitials(tName) : getInitials(sName)
+            };
+
+            if (isStudent) {
+                isPast ? studentBookings.value.past.push(formattedBooking) : studentBookings.value.upcoming.push(formattedBooking);
+            }
+            if (isTutor) {
+                isPast ? tutorBookings.value.past.push(formattedBooking) : tutorBookings.value.upcoming.push(formattedBooking);
+            }
+        });
+    } catch (error) {
+        console.error('Fehler beim Abrufen der Buchungen:', error);
+    } finally {
+        isLoading.value = false;
+    }
+}
+
+function getInitials(name) {
+    if (!name) return '??';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    return name.substring(0, 2).toUpperCase();
+}
+
+function setTab(tab) { activeTab.value = tab; }
+function payBooking(id) { router.push(`/payment/${id}`); }
+function rateBooking(id) { router.push(`/rate/${id}`); }
+
+async function cancelBooking(id) {
+    if (cancelConfirmId.value !== id) {
+        cancelConfirmId.value = id;
+        return;
+    }
+    try {
+        const token = await getAccessTokenSilently();
+        const response = await fetch(`http://localhost:8081/api/booking/${id}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Fehler beim Stornieren');
+        cancelConfirmId.value = null;
+        await loadBookings();
+    } catch (error) {
+        console.error('Fehler:', error);
+    }
+}
+
+function chatWithUser(name) { console.log('Chat:', name); }
+function reportUser(name) { console.log('Melden:', name); }
+</script>
+
+<template>
+    <div class="bookings-wrapper" style="background-color: #f7f4ed; min-height: 100vh; padding-bottom: 80px;">
+        <div class="container py-4 py-lg-5" style="max-width: 800px;">
+
+            <div class="d-flex gap-2 mb-4 justify-content-center justify-content-md-start px-2">
+                <button @click="setTab('student')" class="tab-btn" :class="activeTab === 'student' ? 'active' : ''">Als
+                    Student</button>
+                <button @click="setTab('tutor')" class="tab-btn" :class="activeTab === 'tutor' ? 'active' : ''">Als
+                    Tutor</button>
+            </div>
+
+            <hr class="mb-4 border-secondary opacity-25">
+
+            <div v-if="isLoading" class="text-center py-5">
+                <div class="spinner-border text-warning" role="status"></div>
+            </div>
+
+            <div v-else>
+                <div v-if="activeTab === 'student'">
+                    <h6 class="section-heading mb-3 px-2">ANSTEHEND</h6>
+                    <div class="d-flex flex-column gap-3 mb-5 px-2">
+                        <div v-if="studentBookings.upcoming.length === 0"
+                            class="bg-white rounded-4 shadow-sm border p-4 text-center text-muted">Keine anstehenden
+                            Buchungen.</div>
+                        <div v-for="booking in studentBookings.upcoming" :key="booking.id"
+                            class="booking-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-circle">{{ booking.initials }}</div>
+                                <div>
+                                    <div class="fw-bold text-dark mb-0 lh-1">{{ booking.tutorName }}</div>
+                                    <div class="text-dark small mt-1 lh-sm">{{ booking.subject }} · {{ booking.uni
+                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column align-items-end gap-2">
+                                <button v-if="booking.status === 'PAID'" class="btn-paid" disabled>BEZAHLT</button>
+                                <button v-else-if="booking.status === 'RATED'" class="btn-paid"
+                                    disabled>BEWERTET</button>
+                                <button v-else class="btn-pay-disabled" disabled
+                                    title="Zahlung erst nach dem Termin möglich">BEZAHLEN</button>
+
+                                <div class="d-flex gap-2">
+                                    <button @click="chatWithUser(booking.tutorName)" class="btn-chat">Chatten</button>
+
+                                    <div v-if="cancelConfirmId === booking.id" class="d-flex gap-1">
+                                        <button @click="cancelBooking(booking.id)" class="btn-confirm-yes">Ja?</button>
+                                        <button @click="cancelConfirmId = null" class="btn-confirm-no">Nein</button>
+                                    </div>
+                                    <button v-else @click="cancelBooking(booking.id)"
+                                        class="btn-cancel">Stornieren</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="section-heading mt-4 mb-3 px-2">VERGANGEN</h6>
+                    <div class="d-flex flex-column gap-3 px-2">
+                        <div v-if="studentBookings.past.length === 0"
+                            class="bg-white rounded-4 shadow-sm border p-4 text-center text-muted">Keine vergangenen
+                            Buchungen.</div>
+                        <div v-for="booking in studentBookings.past" :key="booking.id"
+                            class="booking-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-circle">{{ booking.initials }}</div>
+                                <div>
+                                    <div class="fw-bold text-dark mb-0 lh-1">{{ booking.tutorName }}</div>
+                                    <div class="text-dark small mt-1 lh-sm">{{ booking.subject }} · {{ booking.uni
+                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column align-items-end gap-2">
+                                <button v-if="booking.status === 'PAID'" @click="rateBooking(booking.id)"
+                                    class="btn-pay" style="background-color: #fcdb39;">BEWERTEN</button>
+                                <button v-else-if="booking.status === 'RATED'" class="btn-paid"
+                                    disabled>BEWERTET</button>
+                                <button v-else @click="payBooking(booking.id)" class="btn-pay">BEZAHLEN</button>
+                                <div class="d-flex gap-2">
+                                    <button @click="chatWithUser(booking.tutorName)" class="btn-chat">Chatten</button>
+                                    <button @click="reportUser(booking.tutorName)" class="btn-report">Melden</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-else>
+                    <h6 class="section-heading mb-3 px-2">ANSTEHEND</h6>
+                    <div class="d-flex flex-column gap-3 mb-5 px-2">
+                        <div v-if="tutorBookings.upcoming.length === 0"
+                            class="bg-white rounded-4 shadow-sm border p-4 text-center text-muted">Du hast keine
+                            anstehenden Termine als Tutor.</div>
+                        <div v-for="booking in tutorBookings.upcoming" :key="booking.id"
+                            class="booking-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-circle">{{ booking.initials }}</div>
+                                <div>
+                                    <div class="fw-bold text-dark mb-0 lh-1">{{ booking.studentName }}</div>
+                                    <div class="text-dark small mt-1 lh-sm">{{ booking.subject }} · {{ booking.uni
+                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column align-items-end gap-2">
+                                <button v-if="booking.status === 'PAID' || booking.status === 'RATED'" class="btn-paid"
+                                    style="background-color: #5edb39; border-color: #4cae2d;" disabled>BEZAHLT</button>
+                                <button v-else class="btn-cancel"
+                                    style="border-color: #dcdcdc; color: #a0a0a0; cursor: default;"
+                                    disabled>OFFEN</button>
+
+                                <div class="d-flex gap-2 mt-auto">
+                                    <button @click="chatWithUser(booking.studentName)" class="btn-chat">Chatten</button>
+                                    <div v-if="cancelConfirmId === booking.id" class="d-flex gap-1">
+                                        <button @click="cancelBooking(booking.id)" class="btn-confirm-yes">Ja?</button>
+                                        <button @click="cancelConfirmId = null" class="btn-confirm-no">Nein</button>
+                                    </div>
+                                    <button v-else @click="cancelBooking(booking.id)"
+                                        class="btn-cancel">Stornieren</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="section-heading mt-4 mb-3 px-2">VERGANGEN</h6>
+                    <div class="d-flex flex-column gap-3 px-2">
+                        <div v-if="tutorBookings.past.length === 0"
+                            class="bg-white rounded-4 shadow-sm border p-4 text-center text-muted">Keine vergangenen
+                            Termine.</div>
+                        <div v-for="booking in tutorBookings.past" :key="booking.id"
+                            class="booking-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-circle">{{ booking.initials }}</div>
+                                <div>
+                                    <div class="fw-bold text-dark mb-0 lh-1">{{ booking.studentName }}</div>
+                                    <div class="text-dark small mt-1 lh-sm">{{ booking.subject }} · {{ booking.uni
+                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column align-items-end gap-2">
+                                <button v-if="booking.status === 'PAID' || booking.status === 'RATED'" class="btn-paid"
+                                    disabled>BEZAHLT</button>
+                                <div class="d-flex gap-2 mt-auto">
+                                    <button @click="chatWithUser(booking.studentName)" class="btn-chat">Chatten</button>
+                                    <button @click="reportUser(booking.studentName)" class="btn-report">Melden</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<style scoped>
+.section-heading {
+    color: #d4a218;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    font-size: 15px;
+}
+
+.tab-btn {
+    background-color: transparent;
+    border: 1px solid #424242;
+    border-radius: 8px;
+    padding: 6px 16px;
+    font-size: 14px;
+    color: #424242;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.tab-btn.active {
+    background-color: #f2f4f6;
+    border-color: #111827;
+    color: #111827;
+}
+
+.booking-card {
+    border-color: #e0dcd5 !important;
+}
+
+.avatar-circle {
+    width: 45px;
+    height: 45px;
+    background-color: #e0e0e0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: #333;
+    flex-shrink: 0;
+}
+
+.btn-pay {
+    background-color: #fcdb39;
+    color: #111827;
+    border: 1px solid #424242;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    padding: 6px 18px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-pay:hover {
+    opacity: 0.85;
+}
+
+.btn-pay-disabled {
+    background-color: #e0e0e0;
+    color: #888888;
+    border: 1px solid #cccccc;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    padding: 6px 18px;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.btn-paid {
+    background-color: #5edb39;
+    color: #111827;
+    border: 1px solid #4cae2d;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    padding: 6px 18px;
+    cursor: default;
+}
+
+.btn-chat {
+    background-color: transparent;
+    color: #424242;
+    border: 1px solid #a0a0a0;
+    border-radius: 14px;
+    font-size: 12px;
+    padding: 4px 12px;
+    cursor: pointer;
+}
+
+.btn-chat:hover {
+    background-color: #f0f0f0;
+}
+
+.btn-cancel {
+    background-color: transparent;
+    color: #6c757d;
+    border: 1px solid #ced4da;
+    border-radius: 14px;
+    font-size: 12px;
+    padding: 4px 12px;
+    cursor: pointer;
+}
+
+.btn-confirm-yes {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 11px;
+    padding: 4px 8px;
+    font-weight: bold;
+}
+
+.btn-confirm-no {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 11px;
+    padding: 4px 8px;
+    font-weight: bold;
+}
+
+.btn-report {
+    background-color: #e32828;
+    color: #ffffff;
+    border: 1px solid #c41e1e;
+    border-radius: 14px;
+    font-size: 12px;
+    padding: 4px 12px;
+    cursor: pointer;
+}
+
+@media (max-width: 400px) {
+    .avatar-circle {
+        display: none;
+    }
+}
+</style>

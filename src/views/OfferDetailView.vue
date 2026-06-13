@@ -1,14 +1,22 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, onMounted, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useAuth0 } from '@auth0/auth0-vue';
 
 const route = useRoute();
+const router = useRouter();
 const { isAuthenticated, getAccessTokenSilently, loginWithRedirect } = useAuth0();
 const url = 'http://localhost:8081/api/offer';
 
 const offer = ref(null);
 const isLoading = ref(true);
+
+const showBookingForm = ref(false);
+
+const selectedDate = ref(null);
+const selectedAvailabilityIndex = ref(null);
+const bookingMessage = ref('');
+const bookingError = ref('');
 
 onMounted(async () => fetchOffer());
 
@@ -27,38 +35,115 @@ async function fetchOffer() {
   }
 }
 
-function formatDate(dateString) {
-  if (!dateString) return '';
-  const [year, month, day] = dateString.split('-');
-  return `${day}.${month}.${year}`;
+function getFormatLabel(format) {
+  if (format === 'ONLINE') return 'Online';
+  if (format === 'PRAESENZ') return 'Präsenz';
+  if (format === 'HYBRID') return 'Online & Präsenz';
+  return format;
 }
 
-async function toggleBooking(avail) {
+function formatShortDate(dateString) {
+  const date = new Date(dateString);
+  const weekday = date.toLocaleDateString('de-DE', { weekday: 'short' });
+  const day = date.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' });
+  return `${weekday}, ${day}`;
+}
+
+function getInitials(name) {
+  if (!name) return '??';
+  const parts = name.trim().split(' ');
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return name.substring(0, 2).toUpperCase();
+}
+
+const groupedAvailabilities = computed(() => {
+  if (!offer.value || !offer.value.availabilities) return {};
+
+  const grouped = {};
+  offer.value.availabilities.forEach((avail, index) => {
+    if (!avail.booked) {
+      if (!grouped[avail.date]) {
+        grouped[avail.date] = [];
+      }
+      grouped[avail.date].push({ ...avail, originalIndex: index });
+    }
+  });
+  return grouped;
+});
+
+const availableDates = computed(() => {
+  return Object.keys(groupedAvailabilities.value).sort();
+});
+
+const totalFreeSlotsCount = computed(() => {
+  let count = 0;
+  for (const date in groupedAvailabilities.value) {
+    count += groupedAvailabilities.value[date].length;
+  }
+  return count;
+});
+
+function selectDate(date) {
+  selectedDate.value = date;
+  selectedAvailabilityIndex.value = null;
+}
+
+function startBooking() {
   if (!isAuthenticated.value) {
-    loginWithRedirect();
+    loginWithRedirect({ appState: { targetUrl: route.path } });
+    return;
+  }
+  showBookingForm.value = true;
+  selectedDate.value = availableDates.value.length > 0 ? availableDates.value[0] : null;
+  selectedAvailabilityIndex.value = null;
+  bookingError.value = '';
+}
+
+function cancelBooking() {
+  showBookingForm.value = false;
+  selectedDate.value = null;
+  selectedAvailabilityIndex.value = null;
+  bookingError.value = '';
+}
+
+async function confirmBooking() {
+  if (selectedAvailabilityIndex.value === null) {
+    bookingError.value = 'Bitte wähle eine Uhrzeit aus.';
     return;
   }
 
-  const token = await getAccessTokenSilently();
-  const oldState = avail.booked;
-  avail.booked = !avail.booked;
-
   try {
-    const response = await fetch(`${url}/${offer.value.id}/book`, {
-      method: 'PUT',
+    const token = await getAccessTokenSilently();
+
+    const slotIndex = selectedAvailabilityIndex.value;
+    const availability = offer.value.availabilities[slotIndex];
+
+    if (!availability || !availability.id) {
+      throw new Error("Der gewählte Termin hat keine gültige ID aus der Datenbank!");
+    }
+
+    const response = await fetch(`http://localhost:8081/api/booking`, {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify(offer.value),
+      body: JSON.stringify({
+        availability: { id: availability.id },
+        messageToTutor: bookingMessage.value || ""
+      }),
     });
 
     if (!response.ok) {
-      throw new Error('Fehler beim Speichern im Backend');
+      const errorText = await response.text();
+      throw new Error(`Backend meldet Fehler ${response.status}: ${errorText}`);
     }
+
+    router.push('/bookings');
+
   } catch (error) {
-    console.error('Netzwerkfehler:', error);
-    avail.booked = oldState;
+    console.error('Fehler beim Buchen:', error);
+    bookingError.value = error.message || 'Leider gab es einen Fehler bei der Buchung. Bitte versuche es später.';
   }
 }
 </script>
@@ -70,83 +155,113 @@ async function toggleBooking(avail) {
       <p class="text-muted">Angebot wird geladen...</p>
     </div>
 
-    <div v-else-if="offer" class="text-start mobile-card desktop-card">
+    <div v-else-if="offer" class="text-start mobile-card desktop-card position-relative">
+      <div v-if="!showBookingForm">
 
-      <div class="d-flex align-items-center mb-4">
-        <div class="profile-avatar-large me-3">NL</div>
-        <div>
-          <h2 class="h4 mb-1 fw-bold text-dark">Natascha Lang</h2>
-          <p class="mb-1 text-muted fw-bold" style="font-size: 14px;">
-            {{ offer.course }}, {{ offer.university }}
-          </p>
-          <p class="mb-0 text-warning" style="font-size: 14px;">
-            ★★★★★ <span class="text-dark fw-bold ms-1">4,9</span> <span class="text-muted">(62 Bew.)</span>
-          </p>
-        </div>
-      </div>
-
-      <div class="modul-box mb-4 p-3 bg-white">
-        <div class="yellow-label mb-1">MODUL</div>
-        <div class="fw-bold fs-5 text-dark">{{ offer.module }}</div>
-        <div class="text-muted small mt-1">{{ offer.course }}</div>
-      </div>
-
-      <div class="mb-4">
-        <div class="yellow-label mb-1">BESCHREIBUNG</div>
-        <p class="lh-sm fs-6 text-dark">{{ offer.description }}</p>
-      </div>
-
-      <div class="mb-4">
-        <div class="yellow-label mb-1">VERFÜGBARKEIT</div>
-        <div class="fw-bold text-dark mb-3">Unterrichtsformat: {{ offer.format }}</div>
-
-        <div v-if="offer.availabilities && offer.availabilities.length > 0">
-          <ul class="list-unstyled mb-0">
-            <li v-for="avail in offer.availabilities" :key="avail.id"
-              class="mb-2 p-2 border rounded d-flex justify-content-between align-items-center"
-              :class="{ 'bg-light': avail.booked }">
-
-              <div>
-                <div
-                  :class="{ 'text-decoration-line-through text-muted': avail.booked, 'text-dark fw-bold': !avail.booked }"
-                  style="font-size: 15px;">
-                  <span class="d-block d-sm-inline mb-1 mb-sm-0">📅 {{ formatDate(avail.date) }}</span>
-
-                  <span class="d-none d-sm-inline mx-1">|</span>
-
-                  <span class="d-block d-sm-inline">🕒 {{ avail.startTime }} - {{ avail.endTime }} Uhr</span>
-                </div>
-
-                <div class="mt-1 mt-sm-0 d-sm-inline-block ms-sm-2">
-                  <span v-if="avail.booked" class="badge bg-danger" style="font-size: 11px;">Gebucht</span>
-                  <span v-else class="badge bg-success" style="font-size: 11px;">Frei</span>
-                </div>
-              </div>
-
-              <button @click="toggleBooking(avail)" class="btn btn-sm px-3 py-1 m-0 fw-bold ms-2 flex-shrink-0"
-                :class="avail.booked ? 'btn-outline-danger' : 'btn-yellow-main text-dark'"
-                style="height: auto; font-size: 13px;">
-                {{ avail.booked ? 'Stornieren' : 'Buchen' }}
-              </button>
-            </li>
-          </ul>
+        <div class="d-flex align-items-center mb-4">
+          <div class="profile-avatar-large me-3">{{ getInitials(offer.ownerName || 'Tutor') }}</div>
+          <div>
+            <h2 class="h4 mb-1 fw-bold text-dark">{{ offer.ownerName || 'Tutor' }}</h2>
+            <p class="mb-1 text-muted fw-bold" style="font-size: 14px;">
+              {{ offer.course }}, {{ offer.university }}
+            </p>
+            <p class="mb-0 text-warning" style="font-size: 14px;">
+              ★★★★★ <span class="text-dark fw-bold ms-1">4,9</span> <span class="text-muted">(62 Bew.)</span>
+            </p>
+          </div>
         </div>
 
-        <div v-else>
-          <span class="text-muted fw-bold" style="font-size: 15px;">Bisher keine Termine hinterlegt.</span>
+        <div class="modul-box mb-4 p-3 bg-white">
+          <div class="yellow-label mb-1">MODUL</div>
+          <div class="fw-bold fs-5 text-dark">{{ offer.module }}</div>
+          <div class="text-muted small mt-1">{{ offer.course }}</div>
+        </div>
+
+        <div class="mb-4">
+          <div class="yellow-label mb-1">BESCHREIBUNG</div>
+          <p class="lh-sm fs-6 text-dark">{{ offer.description }}</p>
+        </div>
+
+        <div class="mb-4">
+          <div class="yellow-label mb-1">VERFÜGBARKEIT</div>
+          <div class="fw-bold text-dark mb-3">Unterrichtsformat: {{ getFormatLabel(offer.format) }}</div>
+
+          <div v-if="totalFreeSlotsCount > 0">
+            <span class="text-success fw-bold small">
+              📅 {{ totalFreeSlotsCount }} {{ totalFreeSlotsCount === 1 ? 'freier Termin' : 'freie Termine' }} verfügbar
+            </span>
+          </div>
+          <div v-else>
+            <span class="text-danger fw-bold small">❌ Aktuell keine freien Termine</span>
+          </div>
+        </div>
+
+        <div class="price-book-box mb-4 d-flex justify-content-between align-items-center p-3 bg-white">
+          <div>
+            <div class="yellow-label mb-1">PREIS</div>
+            <div class="fw-bold fs-3 text-dark lh-1">{{ offer.price }} €<span class="fs-6 fw-normal">/Std.</span></div>
+          </div>
+          <button @click="startBooking" class="btn-yellow-main px-4" :disabled="totalFreeSlotsCount === 0">
+            Buchen
+          </button>
+        </div>
+
+        <button class="btn-message-outline w-100 mb-3 text-dark">Nachricht senden</button>
+
+        <div class="text-center mt-2 pb-2">
+          <a href="#" class="report-link">⚠ Angebot melden</a>
         </div>
       </div>
-      <div class="price-book-box mb-3 d-flex justify-content-between align-items-center p-3 bg-white">
-        <div>
-          <div class="yellow-label mb-1">PREIS</div>
-          <div class="fw-bold fs-3 text-dark">{{ $formatPrice(offer.price) }} €/Std.</div>
+      <div v-else>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2 class="h4 fw-bold text-dark mb-0">Termin buchen</h2>
+          <button @click="cancelBooking" class="btn btn-sm btn-outline-secondary fw-bold">Abbrechen</button>
         </div>
-      </div>
 
-      <button class="btn-message-outline w-100 mb-3 text-dark">Nachricht senden</button>
+        <div class="modul-box mb-4 p-3 bg-white">
+          <div class="yellow-label mb-1">MODUL</div>
+          <div class="fw-bold fs-5 text-dark">{{ offer.module }}</div>
+        </div>
 
-      <div class="text-center mt-2 pb-2">
-        <a href="#" class="report-link">⚠ Angebot melden</a>
+        <div class="mb-4">
+          <div class="yellow-label mb-2">1. DATUM WÄHLEN</div>
+
+          <div class="d-flex flex-wrap gap-2">
+            <button v-for="date in availableDates" :key="date" @click="selectDate(date)" class="date-btn"
+              :class="{ 'date-btn-active': selectedDate === date }">
+              {{ formatShortDate(date) }}
+            </button>
+          </div>
+        </div>
+
+        <div v-if="selectedDate" class="mb-4">
+          <div class="yellow-label mb-2">2. UHRZEIT WÄHLEN</div>
+
+          <div class="d-flex flex-wrap gap-2">
+            <button v-for="slot in groupedAvailabilities[selectedDate]" :key="slot.originalIndex"
+              @click="selectedAvailabilityIndex = slot.originalIndex" class="time-btn"
+              :class="{ 'time-btn-active': selectedAvailabilityIndex === slot.originalIndex }">
+              {{ slot.startTime }} - {{ slot.endTime }}
+            </button>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <div class="yellow-label mb-2 text-dark">Nachricht an Tutor (optional)</div>
+          <textarea v-model="bookingMessage" class="form-control" rows="3"
+            placeholder="Ich brauche besonders Hilfe bei..."
+            style="border-color: #cccccc; border-radius: 8px; resize: none;"></textarea>
+        </div>
+
+        <div v-if="bookingError" class="alert alert-danger py-2 small fw-bold mb-3">
+          {{ bookingError }}
+        </div>
+
+        <button @click="confirmBooking" class="btn-yellow-main w-100" :disabled="selectedAvailabilityIndex === null">
+          Buchung bestätigen
+        </button>
+
       </div>
 
     </div>
@@ -203,10 +318,16 @@ async function toggleBooking(avail) {
   background-color: #fcdb39;
   border: 1px solid #d4b82d;
   transition: background-color 0.2s;
+  color: #111827;
 }
 
-.btn-yellow-main:hover {
+.btn-yellow-main:hover:not(:disabled) {
   background-color: #f0ce2b;
+}
+
+.btn-yellow-main:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-message-outline {
@@ -232,6 +353,50 @@ async function toggleBooking(avail) {
 
 .report-link:hover {
   color: #801515;
+}
+
+.date-btn {
+  background-color: white;
+  border: 1px solid #cccccc;
+  color: #333;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.date-btn:hover {
+  border-color: #a0a0a0;
+  background-color: #f9f9f9;
+}
+
+.date-btn-active {
+  background-color: #fcdb39;
+  border-color: #d4a218;
+  color: #111827;
+}
+
+.time-btn {
+  background-color: white;
+  border: 1px solid #cccccc;
+  color: #333;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.time-btn:hover {
+  border-color: #a0a0a0;
+  background-color: #f9f9f9;
+}
+
+.time-btn-active {
+  background-color: #111827;
+  border-color: #111827;
+  color: white;
 }
 
 @media (max-width: 767px) {
