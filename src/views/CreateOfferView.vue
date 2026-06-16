@@ -110,8 +110,16 @@ async function saveOffer() {
                         <div class="col-md-4 mb-4">
                             <label class="form-label fw-bold text-dark">Sprache<span
                                     class="text-danger">*</span></label>
-                            <input v-model="offer.language" type="text" class="form-control custom-input"
-                                placeholder="z.B. Deutsch" required>
+                            <select v-model="offer.language" class="form-select custom-input" required>
+                                <option value="" disabled selected>Bitte wählen...</option>
+                                <option value="Deutsch">Deutsch</option>
+                                <option value="Englisch">Englisch</option>
+                                <option value="Französisch">Französisch</option>
+                                <option value="Spanisch">Spanisch</option>
+                                <option value="Italienisch">Italienisch</option>
+                                <option value="Türkisch">Türkisch</option>
+                                <option value="Sonstige">Sonstige</option>
+                            </select>
                         </div>
                     </div>
 
