@@ -3,23 +3,47 @@
         <h1 class="fw-bold mb-4 text-dark">Datenschutzerklärung</h1>
 
         <div class="card border-0 shadow-sm p-4 bg-white rounded-4">
-            <h5 class="fw-bold text-dark mb-3">1. Datenschutz auf einen Blick</h5>
+            <h5 class="fw-bold text-dark mb-3">1. Verantwortlicher</h5>
             <p class="text-muted mb-4">
-                Die folgenden Hinweise geben einen einfachen Überblick darüber, was mit Ihren personenbezogenen Daten
-                passiert, wenn Sie unsere Website besuchen.
+                Verantwortlich für die Datenverarbeitung auf dieser Website sind Florian Stegmiller und Felipe Bilen
+                (siehe Impressum).
             </p>
 
-            <h5 class="fw-bold text-dark mb-3">2. Datenerfassung auf unserer Website</h5>
+            <h5 class="fw-bold text-dark mb-3">2. Art der Daten und Zweck der Verarbeitung</h5>
             <p class="text-muted mb-4">
-                Die Datenverarbeitung auf dieser Website erfolgt durch den Websitebetreiber. Die Authentifizierung und
-                Verwaltung von Benutzerkonten wird über den Dienst Auth0 abgewickelt.
+                Wir verarbeiten personenbezogene Daten (z. B. Name, E-Mail-Adresse, Studiengang), die Sie uns im Rahmen
+                der Registrierung und Profilerstellung freiwillig zur Verfügung stellen. Der Zweck der Verarbeitung ist
+                die Bereitstellung der Plattform zur Vermittlung von Nachhilfeangeboten zwischen Studenten und Tutoren.
             </p>
 
-            <h5 class="fw-bold text-dark mb-3">3. Kontaktformular</h5>
+            <h5 class="fw-bold text-dark mb-3">3. Rechtsgrundlage</h5>
+            <p class="text-muted mb-4">
+                Die Verarbeitung Ihrer Daten erfolgt auf Grundlage Ihrer Einwilligung (Art. 6 Abs. 1 lit. a DSGVO) sowie
+                zur Erfüllung eines Vertrags oder vorvertraglicher Maßnahmen (Art. 6 Abs. 1 lit. b DSGVO) im Rahmen der
+                Plattformnutzung.
+            </p>
+
+            <h5 class="fw-bold text-dark mb-3">4. Externe Dienste (Auth0)</h5>
+            <p class="text-muted mb-4">
+                Für die sichere Authentifizierung und Verwaltung von Benutzerkonten verwenden wir den Dienst Auth0. Bei
+                der Registrierung und beim Login werden notwendige Daten (z. B. E-Mail-Adresse) an Auth0 übertragen und
+                dort verarbeitet.
+            </p>
+
+            <h5 class="fw-bold text-dark mb-3">5. Speicherdauer</h5>
+            <p class="text-muted mb-4">
+                Ihre personenbezogenen Daten werden nur so lange gespeichert, wie es für die Erreichung der genannten
+                Zwecke erforderlich ist oder solange Sie Ihr Konto auf unserer Plattform aufrechterhalten. Wenn Sie Ihr
+                Konto löschen, werden Ihre Daten unverzüglich aus unserem System entfernt.
+            </p>
+
+            <h5 class="fw-bold text-dark mb-3">6. Ihre Rechte als Betroffener</h5>
             <p class="text-muted mb-0">
-                Wenn Sie uns per Kontaktformular (mailto-Link) Anfragen zukommen lassen, werden Ihre Angaben aus der
-                E-Mail inklusive der von Ihnen dort angegebenen Kontaktdaten zwecks Bearbeitung der Anfrage bei uns
-                gespeichert. Stand: Juni 2026.
+                Sie haben jederzeit das Recht auf unentgeltliche Auskunft über Ihre gespeicherten personenbezogenen
+                Daten, deren Herkunft und Empfänger sowie den Zweck der Datenverarbeitung. Zudem haben Sie ein Recht auf
+                Berichtigung, Sperrung oder Löschung dieser Daten. Hierzu sowie zu weiteren Fragen zum Thema Datenschutz
+                können Sie sich jederzeit unter der im Impressum angegebenen Adresse an uns wenden. Des Weiteren steht
+                Ihnen ein Beschwerderecht bei der zuständigen Aufsichtsbehörde zu.
             </p>
         </div>
     </div>
