@@ -9,6 +9,7 @@ const { isAuthenticated, getAccessTokenSilently, loginWithRedirect } = useAuth0(
 const baseUrl = 'http://localhost:8081';
 
 const offer = ref(null);
+const reviews = ref([]);
 const isLoading = ref(true);
 
 const showBookingForm = ref(false);
@@ -23,6 +24,7 @@ const bookingError = ref('');
 
 onMounted(async () => {
   await fetchOffer();
+  await fetchReviews();
   if (isAuthenticated.value) {
     await checkModeratorRole();
   }
@@ -41,6 +43,24 @@ async function fetchOffer() {
     isLoading.value = false;
   }
 }
+
+async function fetchReviews() {
+  try {
+    const response = await fetch(`${baseUrl}/api/offer/${route.params.id}/reviews`);
+    if (response.ok) {
+      reviews.value = await response.json();
+    }
+  } catch (error) {
+    console.error("Fehler beim Laden der Bewertungen");
+  }
+}
+
+const reviewCount = computed(() => reviews.value.length);
+const averageRating = computed(() => {
+  if (reviews.value.length === 0) return 0;
+  const sum = reviews.value.reduce((acc, r) => acc + r.ratingStars, 0);
+  return (sum / reviews.value.length).toFixed(1);
+});
 
 async function checkModeratorRole() {
   try {
@@ -65,8 +85,17 @@ function getFormatLabel(format) {
   return format;
 }
 
-function formatShortDate(dateString) {
-  const date = new Date(dateString);
+function formatShortDate(dateInput) {
+  if (!dateInput) return '';
+  let date;
+  if (Array.isArray(dateInput)) {
+    date = new Date(dateInput[0], dateInput[1] - 1, dateInput[2], dateInput[3] || 0, dateInput[4] || 0);
+  } else {
+    date = new Date(dateInput);
+  }
+
+  if (isNaN(date)) return '';
+
   const weekday = date.toLocaleDateString('de-DE', { weekday: 'short' });
   const day = date.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' });
   return `${weekday}, ${day}`;
@@ -81,7 +110,6 @@ function getInitials(name) {
 
 const groupedAvailabilities = computed(() => {
   if (!offer.value || !offer.value.availabilities) return {};
-
   const grouped = {};
   offer.value.availabilities.forEach((avail, index) => {
     if (!avail.booked) {
@@ -94,9 +122,7 @@ const groupedAvailabilities = computed(() => {
   return grouped;
 });
 
-const availableDates = computed(() => {
-  return Object.keys(groupedAvailabilities.value).sort();
-});
+const availableDates = computed(() => Object.keys(groupedAvailabilities.value).sort());
 
 const totalFreeSlotsCount = computed(() => {
   let count = 0;
@@ -140,10 +166,6 @@ async function confirmBooking() {
     const slotIndex = selectedAvailabilityIndex.value;
     const availability = offer.value.availabilities[slotIndex];
 
-    if (!availability || !availability.id) {
-      throw new Error("Der gewählte Termin hat keine gültige ID aus der Datenbank!");
-    }
-
     const response = await fetch(`${baseUrl}/api/booking`, {
       method: 'POST',
       headers: {
@@ -156,10 +178,7 @@ async function confirmBooking() {
       }),
     });
 
-    if (!response.ok) {
-      throw new Error(`Backend meldet Fehler`);
-    }
-
+    if (!response.ok) throw new Error(`Backend meldet Fehler`);
     router.push('/bookings');
 
   } catch (error) {
@@ -230,8 +249,18 @@ function startChatWithTutor() {
             <p class="mb-1 text-muted fw-bold offer-meta">
               {{ offer.course }}, {{ offer.university }}
             </p>
-            <p class="mb-0 text-warning offer-meta">
-              ★★★★★ <span class="text-dark fw-bold ms-1">4,9</span> <span class="text-muted">(62 Bew.)</span>
+            <p class="mb-0 offer-meta d-flex align-items-center">
+              <span class="d-flex text-warning me-1">
+                <svg v-for="n in 5" :key="n" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                  :fill="n <= Math.round(averageRating) ? '#fcdb39' : '#e0e0e0'" class="bi bi-star-fill me-1"
+                  viewBox="0 0 16 16">
+                  <path
+                    d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z" />
+                </svg>
+              </span>
+              <span class="text-dark fw-bold">{{ averageRating > 0 ? averageRating.toString().replace('.', ',') : 'Neu'
+              }}</span>
+              <span class="text-muted ms-1">({{ reviewCount }} Bew.)</span>
             </p>
           </div>
         </div>
@@ -278,7 +307,41 @@ function startChatWithTutor() {
           <span v-else-if="isReported && !isModerator" class="text-success fw-bold small">Angebot wurde gemeldet</span>
         </div>
 
-        <button v-if="isModerator" @click="showModMenu = true" class="btn-modal-red w-100 mt-3">Angebot
+        <hr class="my-5 border-light">
+
+        <div class="mb-4">
+          <div class="yellow-label mb-3">BEWERTUNGEN</div>
+
+          <div v-if="reviews.length === 0" class="text-muted small p-4 bg-light rounded-3 text-center border">
+            Bisher gibt es noch keine Bewertungen für dieses Angebot.
+          </div>
+
+          <div v-else class="reviews-list d-flex flex-column gap-3">
+            <div v-for="review in reviews" :key="review.id" class="review-card p-4 bg-white rounded-4 border shadow-sm">
+              <div class="d-flex align-items-center mb-3">
+                <div class="profile-avatar-small me-3">{{ getInitials(review.studentName) }}</div>
+                <div>
+                  <div class="fw-bold text-dark mb-0 fs-6">{{ review.studentName }}</div>
+                  <div class="text-muted" style="font-size: 13px;">{{ formatShortDate(review.createdAt) }}</div>
+                </div>
+              </div>
+              <div class="d-flex mb-2">
+                <span v-for="n in 5" :key="n" class="me-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                    :fill="n <= review.ratingStars ? '#fcdb39' : '#e0e0e0'" class="bi bi-star-fill" viewBox="0 0 16 16">
+                    <path
+                      d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z" />
+                  </svg>
+                </span>
+              </div>
+              <p class="mb-0 text-dark" style="font-size: 15px; line-height: 1.5;" v-if="review.ratingComment">
+                "{{ review.ratingComment }}"
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <button v-if="isModerator" @click="showModMenu = true" class="btn-modal-red w-100 mt-4">Angebot
           moderieren</button>
 
       </div>
@@ -391,6 +454,20 @@ function startChatWithTutor() {
   align-items: center;
   justify-content: center;
   font-size: 24px;
+  font-weight: 700;
+  color: #333;
+}
+
+.profile-avatar-small {
+  width: 45px;
+  height: 45px;
+  flex-shrink: 0;
+  background-color: #dcdcdc;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
   font-weight: 700;
   color: #333;
 }
