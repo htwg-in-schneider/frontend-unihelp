@@ -155,14 +155,18 @@ async function reportUser(targetOauthId) {
                         </div>
                         <div v-for="booking in studentBookings.upcoming" :key="booking.id"
                             class="booking-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="avatar-circle">{{ booking.initials }}</div>
+
+                            <router-link :to="`/user/${booking.tutorOauthId}`"
+                                class="text-decoration-none d-flex align-items-center gap-3 profile-link">
+                                <div class="avatar-circle text-dark">{{ booking.initials }}</div>
                                 <div>
-                                    <div class="fw-bold text-dark mb-0 lh-1">{{ booking.tutorName }}</div>
+                                    <div class="fw-bold text-dark mb-0 lh-1 hover-underline">{{ booking.tutorName }}
+                                    </div>
                                     <div class="text-dark small mt-1 lh-sm">{{ booking.subject }} · {{ booking.uni
                                     }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
                                 </div>
-                            </div>
+                            </router-link>
+
                             <div class="d-flex flex-column align-items-end gap-2">
                                 <button v-if="booking.status === 'PAID'" class="btn-paid" disabled>BEZAHLT</button>
                                 <button v-else-if="booking.status === 'RATED'" class="btn-paid"
@@ -192,14 +196,18 @@ async function reportUser(targetOauthId) {
                         </div>
                         <div v-for="booking in studentBookings.past" :key="booking.id"
                             class="booking-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="avatar-circle">{{ booking.initials }}</div>
+
+                            <router-link :to="`/user/${booking.tutorOauthId}`"
+                                class="text-decoration-none d-flex align-items-center gap-3 profile-link">
+                                <div class="avatar-circle text-dark">{{ booking.initials }}</div>
                                 <div>
-                                    <div class="fw-bold text-dark mb-0 lh-1">{{ booking.tutorName }}</div>
+                                    <div class="fw-bold text-dark mb-0 lh-1 hover-underline">{{ booking.tutorName }}
+                                    </div>
                                     <div class="text-dark small mt-1 lh-sm">{{ booking.subject }} · {{ booking.uni
                                     }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
                                 </div>
-                            </div>
+                            </router-link>
+
                             <div class="d-flex flex-column align-items-end gap-2">
                                 <button v-if="booking.status === 'PAID'" @click="rateBooking(booking.id)"
                                     class="btn-pay btn-pay-rate">BEWERTEN</button>
@@ -227,14 +235,18 @@ async function reportUser(targetOauthId) {
                         </div>
                         <div v-for="booking in tutorBookings.upcoming" :key="booking.id"
                             class="booking-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="avatar-circle">{{ booking.initials }}</div>
+
+                            <router-link :to="`/user/${booking.studentOauthId}`"
+                                class="text-decoration-none d-flex align-items-center gap-3 profile-link">
+                                <div class="avatar-circle text-dark">{{ booking.initials }}</div>
                                 <div>
-                                    <div class="fw-bold text-dark mb-0 lh-1">{{ booking.studentName }}</div>
+                                    <div class="fw-bold text-dark mb-0 lh-1 hover-underline">{{ booking.studentName }}
+                                    </div>
                                     <div class="text-dark small mt-1 lh-sm">{{ booking.subject }} · {{ booking.uni
                                     }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
                                 </div>
-                            </div>
+                            </router-link>
+
                             <div class="d-flex flex-column align-items-end gap-2">
                                 <button v-if="booking.status === 'PAID' || booking.status === 'RATED'"
                                     class="btn-paid btn-paid-tutor" disabled>BEZAHLT</button>
@@ -262,14 +274,18 @@ async function reportUser(targetOauthId) {
                         </div>
                         <div v-for="booking in tutorBookings.past" :key="booking.id"
                             class="booking-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="avatar-circle">{{ booking.initials }}</div>
+
+                            <router-link :to="`/user/${booking.studentOauthId}`"
+                                class="text-decoration-none d-flex align-items-center gap-3 profile-link">
+                                <div class="avatar-circle text-dark">{{ booking.initials }}</div>
                                 <div>
-                                    <div class="fw-bold text-dark mb-0 lh-1">{{ booking.studentName }}</div>
+                                    <div class="fw-bold text-dark mb-0 lh-1 hover-underline">{{ booking.studentName }}
+                                    </div>
                                     <div class="text-dark small mt-1 lh-sm">{{ booking.subject }} · {{ booking.uni
                                     }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
                                 </div>
-                            </div>
+                            </router-link>
+
                             <div class="d-flex flex-column align-items-end gap-2">
                                 <button v-if="booking.status === 'PAID' || booking.status === 'RATED'" class="btn-paid"
                                     disabled>BEZAHLT</button>
@@ -452,6 +468,29 @@ async function reportUser(targetOauthId) {
 
 .bookings-container {
     max-width: 800px;
+}
+
+.profile-link {
+    transition: opacity 0.2s ease;
+}
+
+.profile-link:hover {
+    opacity: 0.85;
+}
+
+.hover-underline {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-link:hover .hover-underline::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: #111827;
 }
 
 @media (max-width: 400px) {

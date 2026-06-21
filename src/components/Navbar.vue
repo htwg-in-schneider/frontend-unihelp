@@ -19,20 +19,17 @@ const isDetailView = computed(() => {
   return route.path.startsWith('/offer/') ||
     route.path.startsWith('/payment/') ||
     route.path.startsWith('/rate/') ||
+    route.path.startsWith('/user/') ||
+    route.path.startsWith('/chat/') ||
     route.path.startsWith('/moderation');
 });
 
 const showCenteredTitle = computed(() => {
-  return isAppPage.value && route.path !== '/dashboard';
+  return route.path !== '/' && route.path !== '/dashboard';
 });
 
 const isAppPage = computed(() => {
-  const paths = ['/dashboard', '/offers', '/bookings', '/messages', '/profile', '/moderation'];
-  return paths.includes(route.path) ||
-    route.path.startsWith('/offer/') ||
-    route.path.startsWith('/payment/') ||
-    route.path.startsWith('/rate/') ||
-    route.path.startsWith('/moderation');
+  return route.path !== '/';
 });
 
 const goBack = () => {
@@ -83,7 +80,7 @@ const goBack = () => {
           <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div v-if="!isDetailView" class="collapse navbar-collapse justify-content-end" :class="{ 'show': isMenuOpen }">
+        <div class="collapse navbar-collapse justify-content-end" :class="{ 'show': isMenuOpen }">
 
           <ul v-if="!isAppPage" class="navbar-nav align-items-center text-center mt-3 mt-md-0 ms-auto desktop-gap">
             <li class="nav-item mobile-nav-item">

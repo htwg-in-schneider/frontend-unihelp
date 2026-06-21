@@ -5,7 +5,7 @@ import { useAuth0 } from '@auth0/auth0-vue';
 
 const route = useRoute();
 const router = useRouter();
-const { isAuthenticated, getAccessTokenSilently, loginWithRedirect } = useAuth0();
+const { user, isAuthenticated, getAccessTokenSilently, loginWithRedirect } = useAuth0();
 const baseUrl = 'http://localhost:8081';
 
 const offer = ref(null);
@@ -21,6 +21,10 @@ const selectedDate = ref(null);
 const selectedAvailabilityIndex = ref(null);
 const bookingMessage = ref('');
 const bookingError = ref('');
+
+const isOwnOffer = computed(() => {
+  return isAuthenticated.value && offer.value && user.value?.sub === offer.value.ownerOauthId;
+});
 
 onMounted(async () => {
   await fetchOffer();
@@ -242,10 +246,11 @@ function startChatWithTutor() {
     <div v-else-if="offer" class="text-start mobile-card desktop-card position-relative">
       <div v-if="!showBookingForm">
 
-        <div class="d-flex align-items-center mb-4">
-          <div class="profile-avatar-large me-3">{{ getInitials(offer.ownerName || 'Tutor') }}</div>
+        <router-link :to="`/user/${offer.ownerOauthId}`"
+          class="text-decoration-none d-flex align-items-center mb-4 profile-link">
+          <div class="profile-avatar-large me-3 text-dark">{{ getInitials(offer.ownerName || 'Tutor') }}</div>
           <div>
-            <h2 class="h4 mb-1 fw-bold text-dark">{{ offer.ownerName || 'Tutor' }}</h2>
+            <h2 class="h4 mb-1 fw-bold text-dark hover-underline">{{ offer.ownerName || 'Tutor' }}</h2>
             <p class="mb-1 text-muted fw-bold offer-meta">
               {{ offer.course }}, {{ offer.university }}
             </p>
@@ -263,7 +268,7 @@ function startChatWithTutor() {
               <span class="text-muted ms-1">({{ reviewCount }} Bew.)</span>
             </p>
           </div>
-        </div>
+        </router-link>
 
         <div class="modul-box mb-4 p-3 bg-white">
           <div class="yellow-label mb-1">MODUL</div>
@@ -295,7 +300,11 @@ function startChatWithTutor() {
             <div class="yellow-label mb-1">PREIS</div>
             <div class="fw-bold fs-3 text-dark lh-1">{{ offer.price }} €<span class="fs-6 fw-normal">/Std.</span></div>
           </div>
-          <button @click="startBooking" class="btn-yellow-main px-4" :disabled="totalFreeSlotsCount === 0">
+
+          <button v-if="isOwnOffer" class="btn btn-secondary px-4 fw-bold" disabled>
+            Dein Angebot
+          </button>
+          <button v-else @click="startBooking" class="btn-yellow-main px-4" :disabled="totalFreeSlotsCount === 0">
             Buchen
           </button>
         </div>
@@ -630,6 +639,29 @@ function startChatWithTutor() {
   color: #111827;
   font-weight: bold;
   font-size: 16px;
+}
+
+.profile-link {
+  transition: opacity 0.2s ease;
+}
+
+.profile-link:hover {
+  opacity: 0.85;
+}
+
+.hover-underline {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-link:hover .hover-underline::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: #111827;
 }
 
 @media (max-width: 767px) {

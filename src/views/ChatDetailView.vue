@@ -180,8 +180,12 @@ function scrollToBottom() {
                             d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
                     </svg>
                 </button>
-                <div class="avatar-circle">{{ getInitials(partnerName) }}</div>
-                <h1 class="chat-title">{{ partnerName }}</h1>
+
+                <router-link :to="`/user/${partnerId}`"
+                    class="text-decoration-none d-flex align-items-center profile-link">
+                    <div class="avatar-circle text-dark">{{ getInitials(partnerName) }}</div>
+                    <h1 class="chat-title text-dark hover-underline">{{ partnerName }}</h1>
+                </router-link>
             </div>
 
             <div class="chat-body" ref="chatContainer">
@@ -409,5 +413,28 @@ function scrollToBottom() {
     color: #111827;
     font-weight: bold;
     font-size: 16px;
+}
+
+.profile-link {
+    transition: opacity 0.2s ease;
+}
+
+.profile-link:hover {
+    opacity: 0.85;
+}
+
+.hover-underline {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-link:hover .hover-underline::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: #111827;
 }
 </style>
