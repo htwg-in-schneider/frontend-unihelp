@@ -60,7 +60,8 @@ async function loadBookings() {
                 studentName: sName,
                 tutorOauthId: b.tutorOauthId,
                 studentOauthId: b.studentOauthId,
-                initials: isStudent ? getInitials(tName) : getInitials(sName)
+                initials: isStudent ? getInitials(tName) : getInitials(sName),
+                message: b.messageToTutor
             };
 
             if (isStudent) {
@@ -163,13 +164,17 @@ async function reportUser(targetOauthId) {
                             class="booking-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
 
                             <router-link :to="`/user/${booking.tutorOauthId}`"
-                                class="text-decoration-none d-flex align-items-center gap-3 profile-link">
-                                <div class="avatar-circle text-dark">{{ booking.initials }}</div>
+                                class="text-decoration-none d-flex align-items-start gap-3 profile-link">
+                                <div class="avatar-circle text-dark mt-1">{{ booking.initials }}</div>
                                 <div>
                                     <div class="fw-bold text-dark mb-0 lh-1 hover-underline">{{ booking.tutorName }}
                                     </div>
-                                    <div class="text-dark small mt-1 lh-sm">{{ booking.subject }} · {{ booking.uni
-                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                    <div class="text-dark small mt-1 lh-sm mb-2">{{ booking.subject }} · {{ booking.uni
+                                        }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+
+                                    <div v-if="booking.message" class="booking-msg-box p-2 rounded">
+                                        "{{ booking.message }}"
+                                    </div>
                                 </div>
                             </router-link>
 
@@ -204,13 +209,17 @@ async function reportUser(targetOauthId) {
                             class="booking-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
 
                             <router-link :to="`/user/${booking.tutorOauthId}`"
-                                class="text-decoration-none d-flex align-items-center gap-3 profile-link">
-                                <div class="avatar-circle text-dark">{{ booking.initials }}</div>
+                                class="text-decoration-none d-flex align-items-start gap-3 profile-link">
+                                <div class="avatar-circle text-dark mt-1">{{ booking.initials }}</div>
                                 <div>
                                     <div class="fw-bold text-dark mb-0 lh-1 hover-underline">{{ booking.tutorName }}
                                     </div>
-                                    <div class="text-dark small mt-1 lh-sm">{{ booking.subject }} · {{ booking.uni
-                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                    <div class="text-dark small mt-1 lh-sm mb-2">{{ booking.subject }} · {{ booking.uni
+                                        }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+
+                                    <div v-if="booking.message" class="booking-msg-box p-2 rounded">
+                                        "{{ booking.message }}"
+                                    </div>
                                 </div>
                             </router-link>
 
@@ -243,13 +252,17 @@ async function reportUser(targetOauthId) {
                             class="booking-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
 
                             <router-link :to="`/user/${booking.studentOauthId}`"
-                                class="text-decoration-none d-flex align-items-center gap-3 profile-link">
-                                <div class="avatar-circle text-dark">{{ booking.initials }}</div>
+                                class="text-decoration-none d-flex align-items-start gap-3 profile-link">
+                                <div class="avatar-circle text-dark mt-1">{{ booking.initials }}</div>
                                 <div>
                                     <div class="fw-bold text-dark mb-0 lh-1 hover-underline">{{ booking.studentName }}
                                     </div>
-                                    <div class="text-dark small mt-1 lh-sm">{{ booking.subject }} · {{ booking.uni
-                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                    <div class="text-dark small mt-1 lh-sm mb-2">{{ booking.subject }} · {{ booking.uni
+                                        }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+
+                                    <div v-if="booking.message" class="booking-msg-box p-2 rounded">
+                                        "{{ booking.message }}"
+                                    </div>
                                 </div>
                             </router-link>
 
@@ -282,13 +295,17 @@ async function reportUser(targetOauthId) {
                             class="booking-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
 
                             <router-link :to="`/user/${booking.studentOauthId}`"
-                                class="text-decoration-none d-flex align-items-center gap-3 profile-link">
-                                <div class="avatar-circle text-dark">{{ booking.initials }}</div>
+                                class="text-decoration-none d-flex align-items-start gap-3 profile-link">
+                                <div class="avatar-circle text-dark mt-1">{{ booking.initials }}</div>
                                 <div>
                                     <div class="fw-bold text-dark mb-0 lh-1 hover-underline">{{ booking.studentName }}
                                     </div>
-                                    <div class="text-dark small mt-1 lh-sm">{{ booking.subject }} · {{ booking.uni
-                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                    <div class="text-dark small mt-1 lh-sm mb-2">{{ booking.subject }} · {{ booking.uni
+                                        }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+
+                                    <div v-if="booking.message" class="booking-msg-box p-2 rounded">
+                                        "{{ booking.message }}"
+                                    </div>
                                 </div>
                             </router-link>
 
@@ -342,6 +359,15 @@ async function reportUser(targetOauthId) {
 
 .booking-card {
     border-color: #e0dcd5 !important;
+}
+
+.booking-msg-box {
+    background-color: #f2f4f6;
+    border: 1px solid #e0dcd5;
+    color: #424242;
+    font-size: 12px;
+    line-height: 1.4;
+    max-width: 250px;
 }
 
 .avatar-circle {
