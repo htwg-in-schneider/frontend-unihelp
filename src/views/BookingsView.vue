@@ -15,7 +15,9 @@ const cancelConfirmId = ref(null);
 const studentBookings = ref({ upcoming: [], past: [] });
 const tutorBookings = ref({ upcoming: [], past: [] });
 
-const reportedUsers = ref(new Set());
+const showReportModal = ref(false);
+const reportTarget = ref(null);
+const reportReason = ref('');
 
 onMounted(async () => {
     if (isAuthenticated.value) {
@@ -111,23 +113,28 @@ function chatWithUser(partnerId, partnerName) {
     router.push({ path: `/chat/${partnerId}`, query: { name: partnerName } });
 }
 
-async function reportUser(targetOauthId) {
-    if (!targetOauthId) return;
+function openReportModal(oauthId, name) {
+    reportTarget.value = { oauthId, name };
+    reportReason.value = '';
+    showReportModal.value = true;
+}
+
+async function submitReport() {
+    if (!reportTarget.value || !reportReason.value.trim()) return;
     try {
         const token = await getAccessTokenSilently();
         await fetch('http://localhost:8081/api/moderation/reports', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({
                 targetType: 'USER',
-                targetOauthId: targetOauthId,
-                reason: 'Nutzer wurde aus den Buchungen heraus gemeldet'
+                targetOauthId: reportTarget.value.oauthId,
+                reason: reportReason.value.trim()
             })
         });
-        reportedUsers.value.add(targetOauthId);
+        showReportModal.value = false;
+        reportTarget.value = null;
+        reportReason.value = '';
         success('Nutzer wurde gemeldet.');
     } catch (e) {
         error('Melden fehlgeschlagen. Bitte versuche es erneut.');
@@ -170,7 +177,7 @@ async function reportUser(targetOauthId) {
                                     <div class="fw-bold text-dark mb-0 lh-1 hover-underline">{{ booking.tutorName }}
                                     </div>
                                     <div class="text-dark small mt-1 lh-sm mb-2">{{ booking.subject }} · {{ booking.uni
-                                        }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
 
                                     <div v-if="booking.message" class="booking-msg-box p-2 rounded">
                                         "{{ booking.message }}"
@@ -215,7 +222,7 @@ async function reportUser(targetOauthId) {
                                     <div class="fw-bold text-dark mb-0 lh-1 hover-underline">{{ booking.tutorName }}
                                     </div>
                                     <div class="text-dark small mt-1 lh-sm mb-2">{{ booking.subject }} · {{ booking.uni
-                                        }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
 
                                     <div v-if="booking.message" class="booking-msg-box p-2 rounded">
                                         "{{ booking.message }}"
@@ -232,9 +239,8 @@ async function reportUser(targetOauthId) {
                                 <div class="d-flex gap-2 align-items-center">
                                     <button @click="chatWithUser(booking.tutorOauthId, booking.tutorName)"
                                         class="btn-chat">Chatten</button>
-                                    <button v-if="!reportedUsers.has(booking.tutorOauthId)"
-                                        @click="reportUser(booking.tutorOauthId)" class="btn-report">Melden</button>
-                                    <span v-else class="text-success small fw-bold mt-1 ms-1">Gemeldet</span>
+                                    <button @click="openReportModal(booking.tutorOauthId, booking.tutorName)"
+                                        class="btn-report">Melden</button>
                                 </div>
                             </div>
                         </div>
@@ -258,7 +264,7 @@ async function reportUser(targetOauthId) {
                                     <div class="fw-bold text-dark mb-0 lh-1 hover-underline">{{ booking.studentName }}
                                     </div>
                                     <div class="text-dark small mt-1 lh-sm mb-2">{{ booking.subject }} · {{ booking.uni
-                                        }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
 
                                     <div v-if="booking.message" class="booking-msg-box p-2 rounded">
                                         "{{ booking.message }}"
@@ -301,7 +307,7 @@ async function reportUser(targetOauthId) {
                                     <div class="fw-bold text-dark mb-0 lh-1 hover-underline">{{ booking.studentName }}
                                     </div>
                                     <div class="text-dark small mt-1 lh-sm mb-2">{{ booking.subject }} · {{ booking.uni
-                                        }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
 
                                     <div v-if="booking.message" class="booking-msg-box p-2 rounded">
                                         "{{ booking.message }}"
@@ -315,13 +321,28 @@ async function reportUser(targetOauthId) {
                                 <div class="d-flex gap-2 mt-auto align-items-center">
                                     <button @click="chatWithUser(booking.studentOauthId, booking.studentName)"
                                         class="btn-chat">Chatten</button>
-                                    <button v-if="!reportedUsers.has(booking.studentOauthId)"
-                                        @click="reportUser(booking.studentOauthId)" class="btn-report">Melden</button>
-                                    <span v-else class="text-success small fw-bold mt-1 ms-1">Gemeldet</span>
+                                    <button @click="openReportModal(booking.studentOauthId, booking.studentName)"
+                                        class="btn-report">Melden</button>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="showReportModal" class="modal-overlay d-flex justify-content-center align-items-center">
+            <div class="custom-modal bg-white p-4 rounded-4 shadow-lg text-start">
+                <h3 class="fw-bold text-dark mb-1 fs-4 text-center">Nutzer melden</h3>
+                <p class="text-muted small text-center mb-4">{{ reportTarget?.name }}</p>
+                <div class="mb-4">
+                    <textarea v-model="reportReason" class="form-control" rows="3"
+                        placeholder="z.B. Unangemessenes Verhalten, Betrug..."></textarea>
+                </div>
+                <div class="d-flex flex-column gap-2">
+                    <button @click="submitReport" class="btn-report-submit"
+                        :disabled="!reportReason.trim()">Melden</button>
+                    <button @click="showReportModal = false" class="btn-report-cancel">Abbrechen</button>
                 </div>
             </div>
         </div>
@@ -496,6 +517,48 @@ async function reportUser(targetOauthId) {
     padding-bottom: 80px;
     background-color: #f7f4ed;
     min-height: 100vh;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(247, 244, 237, 0.85);
+    z-index: 1050;
+    backdrop-filter: blur(3px);
+}
+
+.custom-modal {
+    border: 1px solid #e0dcd5;
+    width: 90%;
+    max-width: 400px;
+}
+
+.btn-report-submit {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    background-color: #dc3545;
+    color: white;
+    font-weight: bold;
+    border: none;
+}
+
+.btn-report-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-report-cancel {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    background-color: transparent;
+    border: 1px solid #424242;
+    font-weight: bold;
+    color: #6c757d;
 }
 
 .bookings-container {

@@ -15,9 +15,10 @@ const reviews = ref([]);
 const isLoading = ref(true);
 
 const showBookingForm = ref(false);
-const isReported = ref(false);
 const isModerator = ref(false);
 const showModMenu = ref(false);
+const showReportModal = ref(false);
+const reportReason = ref('');
 
 const selectedDate = ref(null);
 const selectedAvailabilityIndex = ref(null);
@@ -194,23 +195,17 @@ async function confirmBooking() {
   }
 }
 
-async function reportOffer() {
-  if (!isAuthenticated.value) return;
+async function submitReport() {
+  if (!isAuthenticated.value || !reportReason.value.trim()) return;
   try {
     const token = await getAccessTokenSilently();
     await fetch(`${baseUrl}/api/moderation/reports`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        targetType: 'OFFER',
-        targetId: offer.value.id,
-        reason: 'Nutzer hat dieses Angebot gemeldet'
-      })
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ targetType: 'OFFER', targetId: offer.value.id, reason: reportReason.value.trim() })
     });
-    isReported.value = true;
+    showReportModal.value = false;
+    reportReason.value = '';
     success('Angebot wurde gemeldet.');
   } catch (e) {
     showError('Melden fehlgeschlagen. Bitte versuche es erneut.');
@@ -318,8 +313,8 @@ function startChatWithTutor() {
         <button @click="startChatWithTutor" class="btn-message-outline w-100 mb-3 text-dark">Nachricht senden</button>
 
         <div class="text-center mt-2 pb-2">
-          <button v-if="!isReported && !isModerator" @click="reportOffer" class="report-link">⚠ Angebot melden</button>
-          <span v-else-if="isReported && !isModerator" class="text-success fw-bold small">Angebot wurde gemeldet</span>
+          <button v-if="!isModerator && !isOwnOffer" @click="showReportModal = true" class="report-link">⚠ Angebot
+            melden</button>
         </div>
 
         <hr class="my-5 border-light">
@@ -420,11 +415,26 @@ function startChatWithTutor() {
     <div v-if="showModMenu" class="modal-overlay d-flex justify-content-center align-items-center">
       <div class="custom-modal bg-white p-4 rounded-4 shadow-lg text-center">
         <h3 class="fw-bold text-dark mb-4 fs-4">Aktion auswählen</h3>
-
         <div class="d-flex flex-column gap-3">
           <button @click="router.push(`/offer/edit/${offer.id}`)" class="btn-modal-yellow">Bearbeiten</button>
           <button @click="deleteOfferAsMod" class="btn-modal-red">Löschen</button>
           <button @click="showModMenu = false" class="btn-modal-outline mt-2">Abbrechen</button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="showReportModal" class="modal-overlay d-flex justify-content-center align-items-center">
+      <div class="custom-modal bg-white p-4 rounded-4 shadow-lg text-start">
+        <h3 class="fw-bold text-dark mb-1 fs-4 text-center">Angebot melden</h3>
+        <p class="text-muted small text-center mb-4">Bitte gib einen Grund an.</p>
+        <div class="mb-4">
+          <textarea v-model="reportReason" class="form-control" rows="3"
+            placeholder="z.B. Unangemessener Inhalt, Betrug..."></textarea>
+        </div>
+        <div class="d-flex flex-column gap-2">
+          <button @click="submitReport" class="btn-modal-red" :disabled="!reportReason.trim()">Melden</button>
+          <button @click="showReportModal = false; reportReason = ''"
+            class="btn-modal-outline border-0 text-muted">Abbrechen</button>
         </div>
       </div>
     </div>
