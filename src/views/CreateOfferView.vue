@@ -2,9 +2,11 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth0 } from '@auth0/auth0-vue';
+import { useToast } from '../composables/useToast.js';
 
 const router = useRouter();
 const { getAccessTokenSilently } = useAuth0();
+const { success, error: showError } = useToast();
 const url = 'http://localhost:8081/api/offer';
 
 const offer = ref({
@@ -41,12 +43,13 @@ async function saveOffer() {
             body: JSON.stringify(offer.value)
         });
         if (response.ok) {
+            success('Angebot erfolgreich veröffentlicht.');
             router.push('/offers');
         } else {
-            console.error('Fehler beim Speichern');
+            showError('Fehler beim Speichern des Angebots.');
         }
-    } catch (error) {
-        console.error('Netzwerkfehler:', error);
+    } catch (e) {
+        showError('Netzwerkfehler. Bitte versuche es erneut.');
     }
 }
 </script>

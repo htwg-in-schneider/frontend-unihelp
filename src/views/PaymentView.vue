@@ -2,10 +2,12 @@
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuth0 } from '@auth0/auth0-vue';
+import { useToast } from '../composables/useToast.js';
 
 const router = useRouter();
 const route = useRoute();
 const { getAccessTokenSilently } = useAuth0();
+const { success, error: showError } = useToast();
 
 const selectedMethod = ref('paypal');
 const isProcessing = ref(false);
@@ -82,9 +84,11 @@ async function processPayment() {
 
         if (!response.ok) throw new Error('Zahlung fehlgeschlagen');
 
+        success('Zahlung erfolgreich abgeschlossen.');
         router.push('/bookings');
-    } catch (error) {
-        console.error('Fehler:', error);
+    } catch (e) {
+        console.error('Fehler:', e);
+        showError('Zahlung fehlgeschlagen. Bitte versuche es erneut.');
     } finally {
         isProcessing.value = false;
     }

@@ -2,10 +2,12 @@
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuth0 } from '@auth0/auth0-vue';
+import { useToast } from '../composables/useToast.js';
 
 const router = useRouter();
 const route = useRoute();
 const { getAccessTokenSilently, user } = useAuth0();
+const { success, error: showError } = useToast();
 
 const rating = ref(0);
 const hoverRating = ref(0);
@@ -99,10 +101,12 @@ async function submitRating() {
 
         if (!response.ok) throw new Error('Bewertung fehlgeschlagen');
 
+        success('Bewertung erfolgreich abgegeben.');
         router.push('/bookings');
 
-    } catch (error) {
-        console.error('Fehler:', error);
+    } catch (e) {
+        console.error('Fehler:', e);
+        showError('Fehler beim Senden der Bewertung.');
         errorMessage.value = 'Fehler beim Senden der Bewertung. Bitte versuche es später.';
     } finally {
         isSubmitting.value = false;

@@ -4,10 +4,12 @@ import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import ProfileActivityCard from '../components/ProfileActivityCard.vue'
 import DeleteModal from '../components/DeleteModal.vue'
+import { useToast } from '../composables/useToast.js'
 
 const baseUrl = 'http://localhost:8081'
 const { user, isAuthenticated, isLoading, getAccessTokenSilently, logout } = useAuth0()
 const router = useRouter()
+const { success, error: showError } = useToast()
 const profileData = ref(null)
 const error = ref('')
 const actionError = ref('')
@@ -107,11 +109,14 @@ async function saveProfile() {
     if (response.ok) {
       profileData.value = await response.json()
       isEditing.value = false
+      success('Profil erfolgreich gespeichert.')
     } else {
+      showError('Fehler beim Speichern der Daten.')
       actionError.value = 'Fehler beim Speichern der Daten. Bitte versuche es später erneut.'
     }
   } catch (e) {
     console.error('Save error', e)
+    showError('Netzwerkfehler beim Speichern.')
     actionError.value = 'Netzwerkfehler beim Speichern.'
   }
 }

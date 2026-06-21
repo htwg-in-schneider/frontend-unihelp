@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router';
 import SpecialBanner from './components/SpecialBanner.vue';
 import Navbar from './components/Navbar.vue';
 import Footer from './components/Footer.vue';
+import ToastContainer from './components/ToastContainer.vue';
 
 const route = useRoute();
 
@@ -25,6 +26,7 @@ const isAppPage = computed(() => {
     </main>
 
     <Footer />
+    <ToastContainer />
 
   </div>
 </template>

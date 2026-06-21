@@ -2,10 +2,12 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuth0 } from '@auth0/auth0-vue';
+import { useToast } from '../composables/useToast.js';
 
 const route = useRoute();
 const router = useRouter();
 const { getAccessTokenSilently } = useAuth0();
+const { success, error: showError } = useToast();
 const url = 'http://localhost:8081/api/offer';
 
 const offer = ref({
@@ -53,10 +55,11 @@ async function updateOffer() {
             body: JSON.stringify(offer.value),
         });
         if (!response.ok) throw new Error('Fehler beim Update');
+        success('Änderungen gespeichert.');
         router.push('/offers');
-    } catch (error) {
-        console.error(error);
-        alert('Konnte nicht aktualisiert werden.');
+    } catch (e) {
+        console.error(e);
+        showError('Konnte nicht aktualisiert werden.');
     }
 }
 
@@ -71,10 +74,11 @@ async function executeDelete() {
         });
         if (!response.ok) throw new Error('Fehler beim Löschen');
         showDeleteModal.value = false;
+        success('Angebot wurde gelöscht.');
         router.push('/offers');
-    } catch (error) {
-        console.error(error);
-        alert('Konnte nicht gelöscht werden.');
+    } catch (e) {
+        console.error(e);
+        showError('Angebot konnte nicht gelöscht werden.');
     }
 }
 </script>

@@ -2,8 +2,10 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth0 } from '@auth0/auth0-vue';
+import { useToast } from '../composables/useToast.js';
 
 const router = useRouter();
+const { success, error } = useToast();
 const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
 
 const activeTab = ref('student');
@@ -98,7 +100,9 @@ async function cancelBooking(id) {
         });
         cancelConfirmId.value = null;
         await loadBookings();
-    } catch (error) {
+        success('Buchung erfolgreich storniert.');
+    } catch (e) {
+        error('Stornierung fehlgeschlagen. Bitte versuche es erneut.');
     }
 }
 
@@ -123,7 +127,9 @@ async function reportUser(targetOauthId) {
             })
         });
         reportedUsers.value.add(targetOauthId);
+        success('Nutzer wurde gemeldet.');
     } catch (e) {
+        error('Melden fehlgeschlagen. Bitte versuche es erneut.');
     }
 }
 </script>

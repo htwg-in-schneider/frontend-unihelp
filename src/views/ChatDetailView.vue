@@ -2,10 +2,12 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuth0 } from '@auth0/auth0-vue';
+import { useToast } from '../composables/useToast.js';
 
 const route = useRoute();
 const router = useRouter();
 const { user, getAccessTokenSilently } = useAuth0();
+const { success, error: showError } = useToast();
 
 const partnerId = route.params.id;
 const partnerName = ref(route.query.name || 'Chat');
@@ -132,8 +134,10 @@ async function executeDelete() {
             messages.value = messages.value.filter(m => m.id !== messageToDelete.value.id);
             showDeleteModal.value = false;
             messageToDelete.value = null;
+            success('Nachricht gelöscht.');
         }
     } catch (e) {
+        showError('Nachricht konnte nicht gelöscht werden.');
     }
 }
 

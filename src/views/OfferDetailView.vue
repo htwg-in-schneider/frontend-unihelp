@@ -2,10 +2,12 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuth0 } from '@auth0/auth0-vue';
+import { useToast } from '../composables/useToast.js';
 
 const route = useRoute();
 const router = useRouter();
 const { user, isAuthenticated, getAccessTokenSilently, loginWithRedirect } = useAuth0();
+const { success, error: showError } = useToast();
 const baseUrl = 'http://localhost:8081';
 
 const offer = ref(null);
@@ -183,9 +185,11 @@ async function confirmBooking() {
     });
 
     if (!response.ok) throw new Error(`Backend meldet Fehler`);
+    success('Buchung erfolgreich abgeschlossen.');
     router.push('/bookings');
 
-  } catch (error) {
+  } catch (e) {
+    showError('Fehler bei der Buchung. Bitte versuche es später.');
     bookingError.value = 'Leider gab es einen Fehler bei der Buchung. Bitte versuche es später.';
   }
 }
@@ -207,7 +211,9 @@ async function reportOffer() {
       })
     });
     isReported.value = true;
+    success('Angebot wurde gemeldet.');
   } catch (e) {
+    showError('Melden fehlgeschlagen. Bitte versuche es erneut.');
   }
 }
 
