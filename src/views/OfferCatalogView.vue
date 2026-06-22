@@ -1,19 +1,24 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useAuth0 } from '@auth0/auth0-vue';
 import OfferCard from '../components/OfferCard.vue';
 
 const route = useRoute();
 const router = useRouter();
+const { isAuthenticated, user, getAccessTokenSilently } = useAuth0();
 
 const url = 'http://localhost:8081/api/offer';
+const baseUrl = 'http://localhost:8081';
 const offers = ref([]);
+const isAdmin = ref(false);
 
 const searchQuery = ref(route.query.search || '');
 const selectedFormat = ref(route.query.format || '');
 
 onMounted(() => {
   fetchOffers();
+  checkAdminRole();
 });
 
 watch([searchQuery, selectedFormat], () => {
@@ -24,6 +29,27 @@ watch([searchQuery, selectedFormat], () => {
   router.replace({ query });
   fetchOffers();
 });
+
+watch(isAuthenticated, () => {
+  checkAdminRole();
+});
+
+async function checkAdminRole() {
+  if (!isAuthenticated.value) return;
+
+  try {
+    const token = await getAccessTokenSilently();
+    const response = await fetch(`${baseUrl}/api/profile`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      isAdmin.value = data.role === 'ADMIN';
+    }
+  } catch (error) {
+    console.error('Error checking admin role:', error);
+  }
+}
 
 async function fetchOffers() {
   try {
@@ -45,7 +71,7 @@ function toggleSearch(term) {
 </script>
 
 <template>
-  <div class="offer-catalog-view" style="border-top: 1px solid #e0dcd5;">
+  <div class="offer-catalog-view">
     <div class="container py-4 content-wrapper-desktop">
 
       <div class="search-section mb-4 mt-2 px-1">
@@ -91,11 +117,12 @@ function toggleSearch(term) {
 
       <div class="row offers-grid px-1">
         <div v-for="offer in offers" :key="offer.id" class="col-lg-4 col-md-6 mb-3">
-          <OfferCard :offer="offer" />
+          <OfferCard :offer="offer"
+            :show-edit-button="isAuthenticated && (isAdmin || (user && offer.ownerOauthId === user.sub))" />
         </div>
       </div>
 
-      <div class="row px-1 mt-2 mb-5">
+      <div class="row px-1 mt-2 mb-5" v-if="isAuthenticated">
         <div class="col-12">
           <router-link to="/offer/new" class="create-offer-btn text-decoration-none">
             <div class="icon-box">
@@ -116,6 +143,10 @@ function toggleSearch(term) {
 </template>
 
 <style scoped>
+.offer-catalog-view {
+  border-top: 1px solid #e0dcd5;
+}
+
 .content-wrapper-desktop {
   max-width: 1100px;
   margin: 0 auto;

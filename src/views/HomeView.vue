@@ -1,6 +1,32 @@
 <script setup>
+import { ref, watchEffect } from 'vue';
 import { tutors } from '../data.js';
 import TutorCard from '../components/TutorCard.vue';
+import { useAuth0 } from '@auth0/auth0-vue';
+import { useRouter } from 'vue-router';
+
+const { loginWithRedirect, isAuthenticated } = useAuth0();
+const router = useRouter();
+
+const contact = ref({
+  subject: '',
+  body: ''
+});
+
+watchEffect(() => {
+  if (isAuthenticated.value) {
+    router.push('/dashboard');
+  }
+});
+
+const handleLogin = () => {
+  loginWithRedirect();
+};
+
+function sendMail() {
+  const mailtoLink = `mailto:unihelp123@proton.me?subject=${encodeURIComponent(contact.value.subject)}&body=${encodeURIComponent(contact.value.body)}`;
+  window.location.href = mailtoLink;
+}
 </script>
 
 <template>
@@ -16,8 +42,8 @@ import TutorCard from '../components/TutorCard.vue';
       </div>
 
       <div class="hero-actions">
-        <router-link to="/angebote" class="button-hero-yellow">Jetzt kostenlos starten</router-link>
-        <a href="#steps" class="button-hero-yellow">Anmelden</a>
+        <router-link to="/offers" class="button-hero-yellow">Jetzt kostenlos starten</router-link>
+        <button type="button" @click="handleLogin" class="button-hero-yellow">Anmelden</button>
       </div>
     </div>
 
@@ -91,7 +117,7 @@ import TutorCard from '../components/TutorCard.vue';
         <li>Termin und Nachricht direkt an den Tutor</li>
         <li>Sicher und einfach bezahlen</li>
       </ul>
-      <router-link to="/angebote" class="button-register-transparent">Jetzt Nachhilfe finden</router-link>
+      <router-link to="/offers" class="button-register-transparent">Jetzt Nachhilfe finden</router-link>
     </div>
   </section>
 
@@ -108,7 +134,7 @@ import TutorCard from '../components/TutorCard.vue';
         <li>Nebeneinkommen durch Hilfe verdienen</li>
         <li>Bewertungen sammeln und Profil aufbauen</li>
       </ul>
-      <router-link to="/angebote" class="button-register-transparent">Als Tutor starten</router-link>
+      <router-link to="/offers" class="button-register-transparent">Als Tutor starten</router-link>
     </div>
   </section>
 
@@ -117,11 +143,50 @@ import TutorCard from '../components/TutorCard.vue';
     <h2 class="section-title">Diese Tutoren unterstützen Studenten</h2>
 
     <div class="tutors-grid">
-      <TutorCard 
-        v-for="tutor in tutors" 
-        :key="tutor.id" 
-        :tutor="tutor" 
-      />
+      <TutorCard v-for="tutor in tutors" :key="tutor.id" :tutor="tutor" />
+    </div>
+  </section>
+
+  <section id="contact" class="contact-wrapper">
+    <div class="container contact-container">
+      <div class="row align-items-center">
+
+        <div class="col-md-5 mb-4 mb-md-0 text-start pe-md-5">
+          <p class="section-label mb-2">Kontakt</p>
+          <h2 class="section-title fw-bold mb-3">Hast du Fragen?</h2>
+          <p class="section-subtitle mb-4 text-muted contact-subtitle">
+            Egal ob es um die Registrierung, Probleme bei einer Buchung oder allgemeines Feedback geht – schreib uns
+            einfach eine kurze Nachricht!
+          </p>
+          <div class="d-flex align-items-center gap-3">
+            <div class="contact-icon">
+              ✉️
+            </div>
+            <span class="fw-bold text-dark">unihelp123@proton.me</span>
+          </div>
+        </div>
+
+        <div class="col-md-7">
+          <form @submit.prevent="sendMail" class="shadow-sm contact-form">
+            <div class="contact-field">
+              <label class="contact-label">Betreff</label>
+              <input v-model="contact.subject" type="text" placeholder="z.B. Frage zur Registrierung" required
+                class="contact-input"
+                @focus="$event.target.style.backgroundColor = '#fff'; $event.target.style.borderColor = '#d4a218';"
+                @blur="$event.target.style.backgroundColor = '#fafafa'; $event.target.style.borderColor = '#dcdcdc';" />
+            </div>
+            <div class="contact-field contact-field-last">
+              <label class="contact-label">Deine Nachricht</label>
+              <textarea v-model="contact.body" rows="4" placeholder="Wie können wir dir helfen?" required
+                class="contact-input contact-textarea"
+                @focus="$event.target.style.backgroundColor = '#fff'; $event.target.style.borderColor = '#d4a218';"
+                @blur="$event.target.style.backgroundColor = '#fafafa'; $event.target.style.borderColor = '#dcdcdc';"></textarea>
+            </div>
+            <button type="submit" class="button-hero-yellow contact-submit">Nachricht senden</button>
+          </form>
+        </div>
+
+      </div>
     </div>
   </section>
 
@@ -129,6 +194,87 @@ import TutorCard from '../components/TutorCard.vue';
     <h2>Bereit loszulegen?</h2>
     <p>Registriere dich kostenlos und finde noch heute die passende Nachhilfe oder werde selbst Tutor.</p>
     <br>
-    <a href="#" class="button-register-white">Kostenlos registrieren</a>
+    <button @click="handleLogin" class="button-register-white cta-btn">Kostenlos
+      registrieren</button>
   </section>
 </template>
+
+<style scoped>
+.contact-wrapper {
+  padding: 80px 50px;
+  background-color: #f7f3ed;
+}
+
+.contact-container {
+  max-width: 1000px;
+}
+
+.contact-icon {
+  background-color: #e9ecef;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.contact-form {
+  background: white;
+  padding: 35px;
+  border-radius: 16px;
+  border: 1px solid #e0dcd5;
+}
+
+.contact-field {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.contact-field-last {
+  margin-bottom: 25px;
+}
+
+.contact-label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #424242;
+  font-size: 14px;
+  display: block;
+}
+
+.contact-input {
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1px solid #dcdcdc;
+  width: 100%;
+  outline: none;
+  background-color: #fafafa;
+}
+
+.contact-textarea {
+  resize: vertical;
+}
+
+.contact-submit {
+  width: 100%;
+  margin: 0;
+  padding: 14px;
+  border-radius: 8px;
+}
+
+.cta-btn {
+  border: none;
+  cursor: pointer;
+}
+
+.contact-subtitle {
+  line-height: 1.6;
+}
+
+@media (max-width: 767px) {
+  .contact-wrapper {
+    padding: 40px 20px;
+  }
+}
+</style>

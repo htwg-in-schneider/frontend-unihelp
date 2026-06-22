@@ -1,9 +1,13 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useAuth0 } from '@auth0/auth0-vue';
+import { useToast } from '../composables/useToast.js';
 
 const route = useRoute();
 const router = useRouter();
+const { getAccessTokenSilently } = useAuth0();
+const { success, error: showError } = useToast();
 const url = 'http://localhost:8081/api/offer';
 
 const offer = ref({
@@ -41,41 +45,52 @@ function removeAvailability(index) {
 
 async function updateOffer() {
     try {
+        const token = await getAccessTokenSilently();
         const response = await fetch(`${url}/${offer.value.id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify(offer.value),
         });
         if (!response.ok) throw new Error('Fehler beim Update');
+        success('Änderungen gespeichert.');
         router.push('/offers');
-    } catch (error) {
-        console.error(error);
-        alert('Konnte nicht aktualisiert werden.');
+    } catch (e) {
+        console.error(e);
+        showError('Konnte nicht aktualisiert werden.');
     }
 }
 
 async function executeDelete() {
     try {
-        const response = await fetch(`${url}/${offer.value.id}`, { method: 'DELETE' });
+        const token = await getAccessTokenSilently();
+        const response = await fetch(`${url}/${offer.value.id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) throw new Error('Fehler beim Löschen');
         showDeleteModal.value = false;
+        success('Angebot wurde gelöscht.');
         router.push('/offers');
-    } catch (error) {
-        console.error(error);
-        alert('Konnte nicht gelöscht werden.');
+    } catch (e) {
+        console.error(e);
+        showError('Angebot konnte nicht gelöscht werden.');
     }
 }
 </script>
 
 <template>
-    <div class="form-focus-view" style="background-color: #f7f4ed; min-height: 100vh;">
+    <div class="form-focus-view">
         <div class="container py-5 form-container">
 
             <div class="form-card shadow-sm mb-5">
                 <form @submit.prevent="updateOffer">
 
-                    <div class="visibility-box mb-4 p-3 rounded"
-                        style="background-color: #f8f9fa; border: 1px solid #e0e0e0;">
+                    <div class="visibility-box mb-4 p-3 rounded">
                         <label class="fw-bold d-block mb-2 text-dark">Sichtbarkeit des Angebots</label>
                         <div class="form-check form-switch d-flex align-items-center m-0 p-0">
                             <input class="form-check-input focus-switch m-0 me-3" type="checkbox" role="switch"
@@ -109,7 +124,8 @@ async function executeDelete() {
                         <div class="col-md-4 mb-4">
                             <label class="form-label fw-bold text-dark">Preis pro Stunde (€)<span
                                     class="text-danger">*</span></label>
-                            <input v-model="offer.price" type="number" step="0.01" class="form-control custom-input" required>
+                            <input v-model="offer.price" type="number" step="0.01" class="form-control custom-input"
+                                required>
                         </div>
                         <div class="col-md-4 mb-4">
                             <label class="form-label fw-bold text-dark">Format<span class="text-danger">*</span></label>
@@ -123,11 +139,20 @@ async function executeDelete() {
                         <div class="col-md-4 mb-4">
                             <label class="form-label fw-bold text-dark">Sprache<span
                                     class="text-danger">*</span></label>
-                            <input v-model="offer.language" type="text" class="form-control custom-input" required>
+                            <select v-model="offer.language" class="form-select custom-input" required>
+                                <option value="" disabled selected>Bitte wählen...</option>
+                                <option value="Deutsch">Deutsch</option>
+                                <option value="Englisch">Englisch</option>
+                                <option value="Französisch">Französisch</option>
+                                <option value="Spanisch">Spanisch</option>
+                                <option value="Italienisch">Italienisch</option>
+                                <option value="Türkisch">Türkisch</option>
+                                <option value="Sonstige">Sonstige</option>
+                            </select>
                         </div>
                     </div>
 
-                    <div class="mb-4 p-4 rounded" style="background-color: #f8f9fa; border: 1px solid #e0e0e0;">
+                    <div class="mb-4 p-4 rounded availability-box">
                         <label class="form-label fw-bold text-dark d-block mb-3">Verfügbare Termine<span
                                 class="text-danger">*</span></label>
 
@@ -150,8 +175,7 @@ async function executeDelete() {
                             </div>
                             <div class="col-md-2">
                                 <button type="button" @click="removeAvailability(index)"
-                                    class="btn btn-outline-danger w-100 d-flex justify-content-center align-items-center"
-                                    style="height: 48px; border-radius: 10px;"
+                                    class="btn btn-outline-danger w-100 d-flex justify-content-center align-items-center btn-delete-slot"
                                     :disabled="offer.availabilities.length === 1 || avail.booked"
                                     title="Termin entfernen">
                                     Löschen
@@ -163,8 +187,8 @@ async function executeDelete() {
                             </div>
                         </div>
 
-                        <button type="button" @click="addAvailability" class="btn btn-outline-secondary mt-2 fw-bold"
-                            style="border-radius: 10px;">
+                        <button type="button" @click="addAvailability"
+                            class="btn btn-outline-secondary mt-2 fw-bold btn-add-slot">
                             + Weiteren Termin hinzufügen
                         </button>
                     </div>
@@ -210,9 +234,32 @@ async function executeDelete() {
 </template>
 
 <style scoped>
+.form-focus-view {
+    background-color: #f7f4ed;
+}
+
 .form-container {
     max-width: 800px;
     margin: 0 auto;
+}
+
+.visibility-box {
+    background-color: #f8f9fa;
+    border: 1px solid #e0e0e0;
+}
+
+.availability-box {
+    background-color: #f8f9fa;
+    border: 1px solid #e0e0e0;
+}
+
+.btn-delete-slot {
+    height: 48px;
+    border-radius: 10px;
+}
+
+.btn-add-slot {
+    border-radius: 10px;
 }
 
 .form-card {
