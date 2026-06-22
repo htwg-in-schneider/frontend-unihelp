@@ -8,8 +8,8 @@ const route = useRoute();
 const router = useRouter();
 const { isAuthenticated, user, getAccessTokenSilently } = useAuth0();
 
-const url = 'http://localhost:8081/api/offer';
-const baseUrl = 'http://localhost:8081';
+const url = `${import.meta.env.VITE_API_BASE_URL}/api/offer`;
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const offers = ref([]);
 const isAdmin = ref(false);
 

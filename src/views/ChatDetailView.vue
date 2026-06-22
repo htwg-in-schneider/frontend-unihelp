@@ -41,7 +41,7 @@ async function loadMessages(showLoadingState = true) {
     if (showLoadingState) isLoading.value = true;
     try {
         const token = await getAccessTokenSilently();
-        const response = await fetch('http://localhost:8081/api/messages', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/messages`, {
             headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -75,7 +75,7 @@ async function loadMessages(showLoadingState = true) {
 async function markAsRead() {
     try {
         const token = await getAccessTokenSilently();
-        await fetch(`http://localhost:8081/api/messages/${partnerId}/read`, {
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/messages/${partnerId}/read`, {
             method: 'PUT',
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -94,7 +94,7 @@ async function sendMessage() {
             content: newMessage.value.trim()
         };
 
-        const response = await fetch('http://localhost:8081/api/messages', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/messages`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -125,7 +125,7 @@ async function executeDelete() {
 
     try {
         const token = await getAccessTokenSilently();
-        const response = await fetch(`http://localhost:8081/api/messages/${messageToDelete.value.id}`, {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/messages/${messageToDelete.value.id}`, {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${token}` }
         });

@@ -28,7 +28,7 @@ onMounted(async () => {
 async function loadBookingData() {
     try {
         const token = await getAccessTokenSilently();
-        const response = await fetch('http://localhost:8081/api/booking', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/booking`, {
             headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -73,7 +73,7 @@ async function processPayment() {
         const token = await getAccessTokenSilently();
         const bookingId = route.params.id;
 
-        const response = await fetch(`http://localhost:8081/api/booking/${bookingId}/pay`, {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/booking/${bookingId}/pay`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

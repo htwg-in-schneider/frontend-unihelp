@@ -6,7 +6,7 @@ import ProfileActivityCard from '../components/ProfileActivityCard.vue'
 import DeleteModal from '../components/DeleteModal.vue'
 import { useToast } from '../composables/useToast.js'
 
-const baseUrl = 'http://localhost:8081'
+const baseUrl = import.meta.env.VITE_API_BASE_URL
 const { user, isAuthenticated, isLoading, getAccessTokenSilently, logout } = useAuth0()
 const router = useRouter()
 const { success, error: showError } = useToast()

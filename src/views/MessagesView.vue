@@ -25,7 +25,7 @@ function parseSpringDate(dateInput) {
 async function loadMessages() {
     try {
         const token = await getAccessTokenSilently();
-        const response = await fetch('http://localhost:8081/api/messages', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/messages`, {
             headers: { Authorization: `Bearer ${token}` }
         });
 

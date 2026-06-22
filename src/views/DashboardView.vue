@@ -6,7 +6,7 @@ import { useRouter } from 'vue-router';
 const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
 const router = useRouter();
 const searchQuery = ref('');
-const baseUrl = 'http://localhost:8081';
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
 const profileData = ref(null);
 const myOffers = ref([]);

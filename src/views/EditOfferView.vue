@@ -8,7 +8,7 @@ const route = useRoute();
 const router = useRouter();
 const { getAccessTokenSilently } = useAuth0();
 const { success, error: showError } = useToast();
-const url = 'http://localhost:8081/api/offer';
+const url = `${import.meta.env.VITE_API_BASE_URL}/api/offer`;
 
 const offer = ref({
     availabilities: []

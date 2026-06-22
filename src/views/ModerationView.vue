@@ -71,18 +71,18 @@ async function initDashboard() {
     try {
         const token = await getAccessTokenSilently();
 
-        const profileRes = await fetch('http://localhost:8081/api/profile', { headers: { Authorization: `Bearer ${token}` } });
+        const profileRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/profile`, { headers: { Authorization: `Bearer ${token}` } });
         if (profileRes.ok) {
             const profile = await profileRes.json();
             userRole.value = profile.role;
         }
 
         const [reportsRes, offersRes, usersRes, suspensionsRes, bookingsRes] = await Promise.all([
-            fetch('http://localhost:8081/api/moderation/reports', { headers: { Authorization: `Bearer ${token}` } }),
-            fetch('http://localhost:8081/api/offer'),
-            fetch('http://localhost:8081/api/moderation/users', { headers: { Authorization: `Bearer ${token}` } }),
-            fetch('http://localhost:8081/api/moderation/suspensions', { headers: { Authorization: `Bearer ${token}` } }),
-            userRole.value === 'ADMIN' ? fetch('http://localhost:8081/api/moderation/bookings', { headers: { Authorization: `Bearer ${token}` } }) : Promise.resolve({ ok: false })
+            fetch(`${import.meta.env.VITE_API_BASE_URL}/api/moderation/reports`, { headers: { Authorization: `Bearer ${token}` } }),
+            fetch(`${import.meta.env.VITE_API_BASE_URL}/api/offer`),
+            fetch(`${import.meta.env.VITE_API_BASE_URL}/api/moderation/users`, { headers: { Authorization: `Bearer ${token}` } }),
+            fetch(`${import.meta.env.VITE_API_BASE_URL}/api/moderation/suspensions`, { headers: { Authorization: `Bearer ${token}` } }),
+            userRole.value === 'ADMIN' ? fetch(`${import.meta.env.VITE_API_BASE_URL}/api/moderation/bookings`, { headers: { Authorization: `Bearer ${token}` } }) : Promise.resolve({ ok: false })
         ]);
 
         const rawReports = reportsRes.ok ? await reportsRes.json() : [];
@@ -150,7 +150,7 @@ async function loadAllReviews(token) {
     const allReviews = [];
     for (const offer of offersList.value) {
         try {
-            const res = await fetch(`http://localhost:8081/api/offer/${offer.id}/reviews`, {
+            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/offer/${offer.id}/reviews`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) {
@@ -206,7 +206,7 @@ async function executeToggleStatus(newStatus) {
     try {
         const token = await getAccessTokenSilently();
         const endpoint = newStatus === 'CLOSED' ? 'close' : 'open';
-        await fetch(`http://localhost:8081/api/moderation/reports/${endpoint}`, {
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/moderation/reports/${endpoint}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ targetType: selectedTarget.value.targetType, targetId: selectedTarget.value.targetId })
@@ -225,8 +225,8 @@ async function executeDelete() {
         const token = await getAccessTokenSilently();
         const isUser = selectedTarget.value.targetType === 'USER';
         const url = isUser
-            ? `http://localhost:8081/api/moderation/user/${selectedTarget.value.targetId}/delete`
-            : `http://localhost:8081/api/moderation/offer/${selectedTarget.value.targetId}`;
+            ? `${import.meta.env.VITE_API_BASE_URL}/api/moderation/user/${selectedTarget.value.targetId}/delete`
+            : `${import.meta.env.VITE_API_BASE_URL}/api/moderation/offer/${selectedTarget.value.targetId}`;
         await fetch(url, { method: isUser ? 'POST' : 'DELETE', headers: { Authorization: `Bearer ${token}` } });
         success(`${isUser ? 'Nutzer' : 'Angebot'} erfolgreich gelöscht.`);
         await initDashboard();
@@ -240,7 +240,7 @@ async function executeRestore() {
     if (!selectedTarget.value || selectedTarget.value.targetType !== 'USER') return;
     try {
         const token = await getAccessTokenSilently();
-        await fetch(`http://localhost:8081/api/moderation/user/${selectedTarget.value.targetId}/restore`, {
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/moderation/user/${selectedTarget.value.targetId}/restore`, {
             method: 'POST', headers: { Authorization: `Bearer ${token}` }
         });
         success('Nutzerprofil wiederhergestellt.');
@@ -255,7 +255,7 @@ async function executeUnban() {
     if (!selectedTarget.value) return;
     try {
         const token = await getAccessTokenSilently();
-        await fetch(`http://localhost:8081/api/moderation/user/${selectedTarget.value.targetId}/unban`, {
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/moderation/user/${selectedTarget.value.targetId}/unban`, {
             method: 'POST', headers: { Authorization: `Bearer ${token}` }
         });
         success('Sperre aufgehoben.');
@@ -275,7 +275,7 @@ async function executeBan() {
             reason: banReason.value,
             ...(banMode.value === 'TEMPORARY' && banUntilDate.value ? { until: banUntilDate.value } : {})
         };
-        await fetch(`http://localhost:8081/api/moderation/user/${selectedTarget.value.targetId}/ban`, {
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/moderation/user/${selectedTarget.value.targetId}/ban`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify(payload)
@@ -291,7 +291,7 @@ async function executeBan() {
 async function deleteReview(review) {
     try {
         const token = await getAccessTokenSilently();
-        await fetch(`http://localhost:8081/api/moderation/review/${review.id}`, {
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/moderation/review/${review.id}`, {
             method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
         });
         success('Bewertung gelöscht.');

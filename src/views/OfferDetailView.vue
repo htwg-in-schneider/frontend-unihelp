@@ -8,7 +8,7 @@ const route = useRoute();
 const router = useRouter();
 const { user, isAuthenticated, getAccessTokenSilently, loginWithRedirect } = useAuth0();
 const { success, error: showError } = useToast();
-const baseUrl = 'http://localhost:8081';
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
 const offer = ref(null);
 const reviews = ref([]);

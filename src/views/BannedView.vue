@@ -15,7 +15,7 @@ onMounted(() => {
 async function checkBanStatus() {
     try {
         const token = await getAccessTokenSilently();
-        const response = await fetch('http://localhost:8081/api/profile', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/profile`, {
             headers: { Authorization: `Bearer ${token}` }
         });
 

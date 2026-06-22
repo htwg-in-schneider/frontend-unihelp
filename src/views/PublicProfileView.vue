@@ -8,7 +8,7 @@ const route = useRoute();
 const router = useRouter();
 const { user: authUser, isAuthenticated, loginWithRedirect, getAccessTokenSilently } = useAuth0();
 const { success, error } = useToast();
-const baseUrl = 'http://localhost:8081';
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
 const publicProfile = ref(null);
 const isLoading = ref(true);

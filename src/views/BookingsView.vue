@@ -30,7 +30,7 @@ onMounted(async () => {
 async function loadBookings() {
     try {
         const token = await getAccessTokenSilently();
-        const response = await fetch('http://localhost:8081/api/booking', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/booking`, {
             headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -97,7 +97,7 @@ async function cancelBooking(id) {
     }
     try {
         const token = await getAccessTokenSilently();
-        await fetch(`http://localhost:8081/api/booking/${id}`, {
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/booking/${id}`, {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -123,7 +123,7 @@ async function submitReport() {
     if (!reportTarget.value || !reportReason.value.trim()) return;
     try {
         const token = await getAccessTokenSilently();
-        await fetch('http://localhost:8081/api/moderation/reports', {
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/moderation/reports`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({
