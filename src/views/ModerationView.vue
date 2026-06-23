@@ -32,6 +32,16 @@ const filteredReports = computed(() =>
     reports.value.filter(r => (r.status || 'OPEN').toLowerCase() === statusFilter.value.toLowerCase())
 );
 
+const userSearch = ref('');
+const filteredUsers = computed(() => {
+    if (!userSearch.value.trim()) return usersList.value;
+    const q = userSearch.value.toLowerCase();
+    return usersList.value.filter(u =>
+        (u.firstName + ' ' + u.lastName).toLowerCase().includes(q) ||
+        (u.email || '').toLowerCase().includes(q)
+    );
+});
+
 const openReportsCount = computed(() => reports.value.filter(r => r.status === 'OPEN').length);
 
 const todayStr = computed(() => {
@@ -377,6 +387,8 @@ async function deleteReview(review) {
                     </div>
 
                     <div v-if="activeSection === 'USERS'" class="table-responsive">
+                        <input v-model="userSearch" type="text" class="form-control mb-3"
+                            placeholder="Nach Name oder E-Mail suchen..." style="border-radius: 8px; max-width: 360px;">
                         <table class="table align-middle">
                             <thead class="table-light text-muted small fw-bold">
                                 <tr>
@@ -389,7 +401,7 @@ async function deleteReview(review) {
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="u in usersList" :key="u.id">
+                                <tr v-for="u in filteredUsers" :key="u.id">
                                     <td class="text-muted small">#{{ u.id }}</td>
                                     <td class="fw-bold">
                                         <router-link :to="`/user/${u.oauthId}`" class="table-link">

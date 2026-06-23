@@ -41,7 +41,10 @@ onMounted(async () => {
 
 async function fetchPublicProfile() {
     try {
-        const response = await fetch(`${baseUrl}/api/user/${route.params.id}`);
+        const token = await getAccessTokenSilently();
+        const response = await fetch(`${baseUrl}/api/user/${route.params.id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
         if (response.ok) {
             publicProfile.value = await response.json();
         }

@@ -1,14 +1,15 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useAuth0 } from '@auth0/auth0-vue';
 import { useToast } from '../composables/useToast.js';
 
 const router = useRouter();
+const route = useRoute();
 const { success, error } = useToast();
 const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
 
-const activeTab = ref('student');
+const activeTab = ref(route.query.tab === 'tutor' ? 'tutor' : 'student');
 const isLoading = ref(true);
 const cancelConfirmId = ref(null);
 
@@ -53,9 +54,12 @@ async function loadBookings() {
 
             const formattedBooking = {
                 id: b.id,
+                offerId: b.offer.id,
                 status: b.status,
                 date: bookingDate.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' }),
                 time: b.availability.startTime.substring(0, 5),
+                endTime: b.availability.endTime ? b.availability.endTime.substring(0, 5) : null,
+                format: formatLabel(b.offer.format),
                 subject: b.offer.module,
                 uni: b.offer.university,
                 tutorName: tName,
@@ -77,6 +81,11 @@ async function loadBookings() {
     } finally {
         isLoading.value = false;
     }
+}
+
+function formatLabel(format) {
+    const map = { ONLINE: 'Online', PRAESENZ: 'Präsenz', HYBRID: 'Online & Präsenz' };
+    return map[format] ?? format;
 }
 
 function getInitials(name) {
@@ -168,7 +177,7 @@ async function submitReport() {
                             Keine anstehenden Buchungen.
                         </div>
                         <div v-for="booking in studentBookings.upcoming" :key="booking.id"
-                            class="booking-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
+                            class="booking-card bg-white rounded-4 shadow-sm border p-3">
 
                             <router-link :to="`/user/${booking.tutorOauthId}`"
                                 class="text-decoration-none d-flex align-items-start gap-3 profile-link">
@@ -177,15 +186,16 @@ async function submitReport() {
                                     <div class="fw-bold text-dark mb-0 lh-1 hover-underline">{{ booking.tutorName }}
                                     </div>
                                     <div class="text-dark small mt-1 lh-sm mb-2">{{ booking.subject }} · {{ booking.uni
-                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                    }}<br>{{ booking.date }} · {{ booking.time }}{{ booking.endTime ? ' – ' + booking.endTime : '' }} Uhr · {{ booking.format }}</div>
 
-                                    <div v-if="booking.message" class="booking-msg-box p-2 rounded">
+                                    <router-link :to="`/offer/${booking.offerId}`" class="offer-detail-link" @click.stop>Zum Angebot →</router-link>
+                                    <div v-if="booking.message" class="booking-msg-box p-2 rounded mt-2">
                                         "{{ booking.message }}"
                                     </div>
                                 </div>
                             </router-link>
 
-                            <div class="d-flex flex-column align-items-end gap-2">
+                            <div class="booking-actions">
                                 <button v-if="booking.status === 'PAID'" class="btn-paid" disabled>BEZAHLT</button>
                                 <button v-else-if="booking.status === 'RATED'" class="btn-paid"
                                     disabled>BEWERTET</button>
@@ -213,7 +223,7 @@ async function submitReport() {
                             Keine vergangenen Buchungen.
                         </div>
                         <div v-for="booking in studentBookings.past" :key="booking.id"
-                            class="booking-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
+                            class="booking-card bg-white rounded-4 shadow-sm border p-3">
 
                             <router-link :to="`/user/${booking.tutorOauthId}`"
                                 class="text-decoration-none d-flex align-items-start gap-3 profile-link">
@@ -222,21 +232,22 @@ async function submitReport() {
                                     <div class="fw-bold text-dark mb-0 lh-1 hover-underline">{{ booking.tutorName }}
                                     </div>
                                     <div class="text-dark small mt-1 lh-sm mb-2">{{ booking.subject }} · {{ booking.uni
-                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                    }}<br>{{ booking.date }} · {{ booking.time }}{{ booking.endTime ? ' – ' + booking.endTime : '' }} Uhr · {{ booking.format }}</div>
 
-                                    <div v-if="booking.message" class="booking-msg-box p-2 rounded">
+                                    <router-link :to="`/offer/${booking.offerId}`" class="offer-detail-link" @click.stop>Zum Angebot →</router-link>
+                                    <div v-if="booking.message" class="booking-msg-box p-2 rounded mt-2">
                                         "{{ booking.message }}"
                                     </div>
                                 </div>
                             </router-link>
 
-                            <div class="d-flex flex-column align-items-end gap-2">
+                            <div class="booking-actions">
                                 <button v-if="booking.status === 'PAID'" @click="rateBooking(booking.id)"
                                     class="btn-pay btn-pay-rate">BEWERTEN</button>
                                 <button v-else-if="booking.status === 'RATED'" class="btn-paid"
                                     disabled>BEWERTET</button>
                                 <button v-else @click="payBooking(booking.id)" class="btn-pay">BEZAHLEN</button>
-                                <div class="d-flex gap-2 align-items-center">
+                                <div class="d-flex gap-2">
                                     <button @click="chatWithUser(booking.tutorOauthId, booking.tutorName)"
                                         class="btn-chat">Chatten</button>
                                     <button @click="openReportModal(booking.tutorOauthId, booking.tutorName)"
@@ -255,7 +266,7 @@ async function submitReport() {
                             Du hast keine anstehenden Termine als Tutor.
                         </div>
                         <div v-for="booking in tutorBookings.upcoming" :key="booking.id"
-                            class="booking-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
+                            class="booking-card bg-white rounded-4 shadow-sm border p-3">
 
                             <router-link :to="`/user/${booking.studentOauthId}`"
                                 class="text-decoration-none d-flex align-items-start gap-3 profile-link">
@@ -264,20 +275,21 @@ async function submitReport() {
                                     <div class="fw-bold text-dark mb-0 lh-1 hover-underline">{{ booking.studentName }}
                                     </div>
                                     <div class="text-dark small mt-1 lh-sm mb-2">{{ booking.subject }} · {{ booking.uni
-                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                    }}<br>{{ booking.date }} · {{ booking.time }}{{ booking.endTime ? ' – ' + booking.endTime : '' }} Uhr · {{ booking.format }}</div>
 
-                                    <div v-if="booking.message" class="booking-msg-box p-2 rounded">
+                                    <router-link :to="`/offer/${booking.offerId}`" class="offer-detail-link" @click.stop>Zum Angebot →</router-link>
+                                    <div v-if="booking.message" class="booking-msg-box p-2 rounded mt-2">
                                         "{{ booking.message }}"
                                     </div>
                                 </div>
                             </router-link>
 
-                            <div class="d-flex flex-column align-items-end gap-2">
+                            <div class="booking-actions">
                                 <button v-if="booking.status === 'PAID' || booking.status === 'RATED'"
                                     class="btn-paid btn-paid-tutor" disabled>BEZAHLT</button>
                                 <button v-else class="btn-cancel btn-cancel-open" disabled>OFFEN</button>
 
-                                <div class="d-flex gap-2 mt-auto">
+                                <div class="d-flex gap-2">
                                     <button @click="chatWithUser(booking.studentOauthId, booking.studentName)"
                                         class="btn-chat">Chatten</button>
                                     <div v-if="cancelConfirmId === booking.id" class="d-flex gap-1">
@@ -298,7 +310,7 @@ async function submitReport() {
                             Keine vergangenen Termine.
                         </div>
                         <div v-for="booking in tutorBookings.past" :key="booking.id"
-                            class="booking-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
+                            class="booking-card bg-white rounded-4 shadow-sm border p-3">
 
                             <router-link :to="`/user/${booking.studentOauthId}`"
                                 class="text-decoration-none d-flex align-items-start gap-3 profile-link">
@@ -307,15 +319,16 @@ async function submitReport() {
                                     <div class="fw-bold text-dark mb-0 lh-1 hover-underline">{{ booking.studentName }}
                                     </div>
                                     <div class="text-dark small mt-1 lh-sm mb-2">{{ booking.subject }} · {{ booking.uni
-                                    }}<br>{{ booking.date }} · {{ booking.time }} Uhr</div>
+                                    }}<br>{{ booking.date }} · {{ booking.time }}{{ booking.endTime ? ' – ' + booking.endTime : '' }} Uhr · {{ booking.format }}</div>
 
-                                    <div v-if="booking.message" class="booking-msg-box p-2 rounded">
+                                    <router-link :to="`/offer/${booking.offerId}`" class="offer-detail-link" @click.stop>Zum Angebot →</router-link>
+                                    <div v-if="booking.message" class="booking-msg-box p-2 rounded mt-2">
                                         "{{ booking.message }}"
                                     </div>
                                 </div>
                             </router-link>
 
-                            <div class="d-flex flex-column align-items-end gap-2">
+                            <div class="booking-actions">
                                 <button v-if="booking.status === 'PAID' || booking.status === 'RATED'" class="btn-paid"
                                     disabled>BEZAHLT</button>
                                 <div class="d-flex gap-2 mt-auto align-items-center">
@@ -380,6 +393,32 @@ async function submitReport() {
 
 .booking-card {
     border-color: #e0dcd5 !important;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+@media (min-width: 576px) {
+    .booking-card {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+}
+
+.booking-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+@media (min-width: 576px) {
+    .booking-actions {
+        flex-direction: column;
+        align-items: flex-end;
+    }
 }
 
 .booking-msg-box {
@@ -474,13 +513,30 @@ async function submitReport() {
 }
 
 .btn-cancel {
-    background-color: transparent;
-    color: #6c757d;
-    border: 1px solid #ced4da;
+    background-color: #dc3545;
+    color: #ffffff;
+    border: 1px solid #b02a37;
     border-radius: 14px;
     font-size: 12px;
     padding: 4px 12px;
     cursor: pointer;
+}
+
+.btn-cancel:hover {
+    background-color: #b02a37;
+}
+
+.offer-detail-link {
+    font-size: 12px;
+    color: #2b487b;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 4px;
+}
+
+.offer-detail-link:hover {
+    text-decoration: underline;
 }
 
 .btn-confirm-yes {

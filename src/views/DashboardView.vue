@@ -76,7 +76,10 @@ async function loadProfile() {
 
 async function fetchMyOffers() {
     try {
-        const response = await fetch(`${baseUrl}/api/offer`);
+        const token = await getAccessTokenSilently();
+        const response = await fetch(`${baseUrl}/api/offer`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
         if (response.ok) {
             const allOffers = await response.json();
             myOffers.value = allOffers.filter(offer => offer.ownerOauthId === user.value?.sub);
@@ -149,7 +152,7 @@ function searchOffers() {
 
                         <div v-for="appointment in upcomingAppointments" :key="appointment.id"
                             class="appointment-card bg-white rounded-4 shadow-sm border d-flex overflow-hidden"
-                            @click="router.push('/bookings')">
+                            @click="router.push({ path: '/bookings', query: { tab: appointment.status === 'TUTOR' ? 'tutor' : 'student' } })">
                             <div
                                 class="date-box d-flex flex-column justify-content-center align-items-center bg-white border-end px-3 py-3">
                                 <span class="fs-4 fw-bold text-dark lh-1 mb-1">{{ appointment.dateDay }}</span>
@@ -184,14 +187,15 @@ function searchOffers() {
                         </div>
 
                         <div v-for="offer in myOffers" :key="offer.id"
-                            class="offer-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center">
+                            class="offer-card bg-white rounded-4 shadow-sm border p-3 d-flex justify-content-between align-items-center"
+                            style="cursor: pointer;" @click="router.push(`/offer/${offer.id}`)">
                             <div class="pe-3">
                                 <div class="fw-bold text-dark mb-1">{{ offer.module }}</div>
                                 <div class="text-dark small offer-info">
                                     {{ offer.price }}€/Std. · {{ getBookedCount(offer) }} Buchungen
                                 </div>
                             </div>
-                            <button @click="editOffer(offer.id)" class="btn-figma-yellow px-3 py-1 m-0">
+                            <button @click.stop="editOffer(offer.id)" class="btn-figma-yellow px-3 py-1 m-0">
                                 Bearbeiten
                             </button>
                         </div>

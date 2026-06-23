@@ -24,13 +24,13 @@ window.fetch = async (...args) => {
             const clone = response.clone();
             const data = await clone.json();
 
-            let query = `?type=${data.type || 'UNKNOWN'}`;
-            if (data.untilDate) query += `&until=${data.untilDate}`;
-            if (data.reason) query += `&reason=${encodeURIComponent(data.reason)}`;
-
-            router.push('/banned' + query);
+            if (data.type === 'PERMANENT' || data.type === 'TEMPORARY' || data.type === 'DELETED') {
+                let query = `?type=${data.type}`;
+                if (data.untilDate) query += `&until=${data.untilDate}`;
+                if (data.reason) query += `&reason=${encodeURIComponent(data.reason)}`;
+                router.push('/banned' + query);
+            }
         } catch (e) {
-            router.push('/banned');
         }
     }
     return response;

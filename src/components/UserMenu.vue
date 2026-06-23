@@ -24,7 +24,7 @@ const handleLogout = () => {
 <template>
     <div v-if="!isLoading">
         <button type="button" v-if="!isAuthenticated" @click.prevent="handleLogin"
-            class="btn btn-dark fw-bold rounded-pill px-4">
+            class="btn btn-login fw-bold rounded-pill px-4">
             Anmelden
         </button>
 
@@ -51,5 +51,17 @@ const handleLogout = () => {
 <style scoped>
 .dropdown-toggle::after {
     display: none;
+}
+
+.btn-login {
+    background-color: #fcdb39;
+    color: #111827;
+    border: 1px solid #d4a218;
+    transition: background-color 0.2s;
+}
+
+.btn-login:hover {
+    background-color: #f0ce2b;
+    color: #111827;
 }
 </style>

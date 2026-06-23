@@ -1,7 +1,10 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useAuth0 } from '@auth0/auth0-vue';
 import UserMenu from './UserMenu.vue';
+
+const { isAuthenticated } = useAuth0();
 
 const isMenuOpen = ref(false);
 const route = useRoute();
@@ -35,6 +38,21 @@ const isAppPage = computed(() => {
 const goBack = () => {
   router.back();
 };
+
+function scrollTo(id) {
+  closeMenu();
+  if (route.path !== '/') {
+    router.push('/').then(() => {
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    });
+  } else {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }
+}
 </script>
 
 <template>
@@ -87,17 +105,17 @@ const goBack = () => {
               <router-link class="nav-link text-dark" to="/offers" @click="closeMenu">Angebote</router-link>
             </li>
             <li class="nav-item mobile-nav-item">
-              <a class="nav-link text-dark" href="/#steps" @click="closeMenu">Ablauf</a>
+              <a class="nav-link text-dark" href="#steps" @click.prevent="scrollTo('steps')">Ablauf</a>
             </li>
             <li class="nav-item mobile-nav-item">
-              <a class="nav-link text-dark" href="/#for-students" @click="closeMenu">Für Studenten</a>
+              <a class="nav-link text-dark" href="#for-students" @click.prevent="scrollTo('for-students')">Für Studenten</a>
             </li>
             <li class="nav-item mobile-nav-item">
-              <a class="nav-link text-dark" href="/#for-tutors" @click="closeMenu">Tutor werden</a>
+              <a class="nav-link text-dark" href="#for-tutors" @click.prevent="scrollTo('for-tutors')">Tutor werden</a>
             </li>
           </ul>
 
-          <ul v-else
+          <ul v-else-if="isAuthenticated"
             class="navbar-nav align-items-center text-center mt-3 mt-md-0 ms-auto desktop-gap d-none d-md-flex">
             <li class="nav-item mobile-nav-item">
               <router-link class="nav-link text-dark"
@@ -114,7 +132,7 @@ const goBack = () => {
             </li>
           </ul>
 
-          <div class="d-flex align-items-center ms-lg-3 mt-3 mt-lg-0" :class="{ 'd-none d-md-flex': isAppPage }">
+          <div class="d-flex align-items-center justify-content-center ms-lg-3 mt-3 mt-lg-0" :class="{ 'd-none d-md-flex': isAppPage }">
             <UserMenu />
           </div>
         </div>
@@ -191,6 +209,12 @@ const goBack = () => {
     border-top: 1px solid #e0dcd5;
     padding-top: 10px;
     padding-bottom: 10px;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   }
 
   .mobile-nav-item {

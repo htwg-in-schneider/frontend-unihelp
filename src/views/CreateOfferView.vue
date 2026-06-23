@@ -9,6 +9,8 @@ const { getAccessTokenSilently } = useAuth0();
 const { success, error: showError } = useToast();
 const url = `${import.meta.env.VITE_API_BASE_URL}/api/offer`;
 
+const today = new Date().toISOString().split('T')[0];
+
 const offer = ref({
     module: '',
     university: '',
@@ -32,6 +34,16 @@ function removeAvailability(index) {
 }
 
 async function saveOffer() {
+    if (offer.value.price <= 0) {
+        showError('Der Preis muss größer als 0 sein.');
+        return;
+    }
+    for (const avail of offer.value.availabilities) {
+        if (avail.startTime && avail.endTime && avail.endTime <= avail.startTime) {
+            showError('Die Endzeit muss nach der Startzeit liegen.');
+            return;
+        }
+    }
     try {
         const token = await getAccessTokenSilently();
         const response = await fetch(url, {
@@ -98,7 +110,7 @@ async function saveOffer() {
                         <div class="col-md-4 mb-4">
                             <label class="form-label fw-bold text-dark">Preis pro Stunde (€)<span
                                     class="text-danger">*</span></label>
-                            <input v-model="offer.price" type="number" step="0.01" class="form-control custom-input"
+                            <input v-model="offer.price" type="number" step="0.01" min="0.01" class="form-control custom-input"
                                 placeholder="z.B. 17" required>
                         </div>
                         <div class="col-md-4 mb-4">
@@ -134,7 +146,7 @@ async function saveOffer() {
                             class="row mb-3 align-items-end">
                             <div class="col-md-4 mb-2 mb-md-0">
                                 <label class="form-label text-muted small mb-1">Datum</label>
-                                <input v-model="avail.date" type="date" class="form-control custom-input" required>
+                                <input v-model="avail.date" type="date" :min="today" class="form-control custom-input" required>
                             </div>
                             <div class="col-md-3 mb-2 mb-md-0">
                                 <label class="form-label text-muted small mb-1">Von</label>
@@ -142,7 +154,7 @@ async function saveOffer() {
                             </div>
                             <div class="col-md-3 mb-2 mb-md-0">
                                 <label class="form-label text-muted small mb-1">Bis</label>
-                                <input v-model="avail.endTime" type="time" class="form-control custom-input" required>
+                                <input v-model="avail.endTime" type="time" :min="avail.startTime || undefined" class="form-control custom-input" required>
                             </div>
                             <div class="col-md-2">
                                 <button type="button" @click="removeAvailability(index)"

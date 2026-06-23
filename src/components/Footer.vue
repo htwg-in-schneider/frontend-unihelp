@@ -1,17 +1,68 @@
 <script setup>
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { computed, ref, onMounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useAuth0 } from '@auth0/auth0-vue';
 
 const route = useRoute();
+const router = useRouter();
+const { isAuthenticated, user, getAccessTokenSilently, logout } = useAuth0();
+
+const unreadCount = ref(0);
+
+async function loadUnreadCount() {
+  if (!isAuthenticated.value) return;
+  try {
+    const token = await getAccessTokenSilently();
+    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/messages`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const msgs = await res.json();
+      const myId = user.value?.sub;
+      unreadCount.value = msgs.filter(m => m.receiverOauthId === myId && !m.read).length;
+    }
+  } catch (_) {}
+}
+
+onMounted(() => {
+  if (isAuthenticated.value) loadUnreadCount();
+});
+
+watch(isAuthenticated, (val) => {
+  if (val) loadUnreadCount();
+});
+
+watch(() => route.path, (newPath) => {
+  if (newPath !== '/messages' && isAuthenticated.value) loadUnreadCount();
+  if (newPath === '/messages') unreadCount.value = 0;
+});
 
 const isAppPage = computed(() => {
-  const paths = ['/', '/dashboard', '/offers', '/bookings', '/messages', '/profile'];
+  const paths = ['/dashboard', '/offers', '/bookings', '/messages', '/profile'];
   return paths.includes(route.path);
 });
 
 const isFormMode = computed(() => {
   return route.query.view === 'form' || route.path.includes('/new') || route.path.includes('/edit');
 });
+
+function handleLogout() {
+  logout({ logoutParams: { returnTo: window.location.origin + import.meta.env.BASE_URL } });
+}
+
+function scrollToContact() {
+  if (route.path !== '/') {
+    router.push('/').then(() => {
+      setTimeout(() => {
+        const el = document.getElementById('contact');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    });
+  } else {
+    const el = document.getElementById('contact');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }
+}
 </script>
 
 <template>
@@ -25,7 +76,8 @@ const isFormMode = computed(() => {
             class="text-decoration-none text-dark opacity-75 footer-link-hover">Impressum</router-link>
           <router-link to="/privacy"
             class="text-decoration-none text-dark opacity-75 footer-link-hover">Datenschutz</router-link>
-          <a href="/#contact" class="text-decoration-none text-dark opacity-75 footer-link-hover">Kontakt</a>
+          <a href="#contact" @click.prevent="scrollToContact"
+            class="text-decoration-none text-dark opacity-75 footer-link-hover">Kontakt</a>
         </div>
       </div>
     </footer>
@@ -34,16 +86,16 @@ const isFormMode = computed(() => {
       class="mobile-bottom-nav d-md-none bg-white border-top fixed-bottom d-flex justify-content-around py-2 shadow-sm">
 
       <router-link to="/dashboard" class="nav-item text-decoration-none text-center"
-        :class="{ 'active-blue': route.path === '/dashboard' || route.path === '/offers' || route.path === '/' }">
+        :class="{ 'active-blue': route.path === '/dashboard' || route.path === '/offers' }">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
           class="bi bi-search d-block mx-auto mb-1 text-secondary"
-          :class="{ 'text-active': route.path === '/dashboard' || route.path === '/offers' || route.path === '/' }"
+          :class="{ 'text-active': route.path === '/dashboard' || route.path === '/offers' }"
           viewBox="0 0 16 16">
           <path
             d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
         </svg>
         <span class="text-secondary nav-label"
-          :class="{ 'text-active': route.path === '/dashboard' || route.path === '/offers' || route.path === '/' }">Entdecken</span>
+          :class="{ 'text-active': route.path === '/dashboard' || route.path === '/offers' }">Entdecken</span>
       </router-link>
 
       <router-link to="/bookings" class="nav-item text-decoration-none text-center"
@@ -59,8 +111,12 @@ const isFormMode = computed(() => {
         <span class="text-secondary nav-label" :class="{ 'text-active': route.path === '/bookings' }">Buchungen</span>
       </router-link>
 
-      <router-link to="/messages" class="nav-item text-decoration-none text-center"
+      <router-link to="/messages" class="nav-item text-decoration-none text-center position-relative"
         :class="{ 'active-blue': route.path === '/messages' }">
+        <span v-if="unreadCount > 0 && route.path !== '/messages'"
+          class="unread-dot badge rounded-pill bg-danger">
+          {{ unreadCount > 9 ? '9+' : unreadCount }}
+        </span>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
           class="bi bi-chat-dots d-block mx-auto mb-1 text-secondary"
           :class="{ 'text-active': route.path === '/messages' }" viewBox="0 0 16 16">
@@ -82,6 +138,17 @@ const isFormMode = computed(() => {
         </svg>
         <span class="text-secondary nav-label" :class="{ 'text-active': route.path === '/profile' }">Profil</span>
       </router-link>
+
+      <button @click="handleLogout" class="nav-item-btn text-center border-0 bg-transparent">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+          class="bi bi-box-arrow-right d-block mx-auto mb-1 text-secondary" viewBox="0 0 16 16">
+          <path fill-rule="evenodd"
+            d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
+          <path fill-rule="evenodd"
+            d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
+        </svg>
+        <span class="text-secondary nav-label">Abmelden</span>
+      </button>
 
     </div>
   </div>
@@ -109,6 +176,21 @@ const isFormMode = computed(() => {
 .footer-link-hover:hover {
   opacity: 1 !important;
   color: #d4a218 !important;
+}
+
+.nav-item-btn {
+  padding: 0;
+  cursor: pointer;
+}
+
+.unread-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  font-size: 9px;
+  padding: 2px 5px;
+  min-width: 16px;
+  line-height: 1.2;
 }
 
 @media (max-width: 767px) {

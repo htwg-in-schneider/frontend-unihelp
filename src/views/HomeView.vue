@@ -9,6 +9,8 @@ const { loginWithRedirect, isAuthenticated } = useAuth0();
 const router = useRouter();
 
 const contact = ref({
+  name: '',
+  email: '',
   subject: '',
   body: ''
 });
@@ -24,7 +26,8 @@ const handleLogin = () => {
 };
 
 function sendMail() {
-  const mailtoLink = `mailto:unihelp123@proton.me?subject=${encodeURIComponent(contact.value.subject)}&body=${encodeURIComponent(contact.value.body)}`;
+  const body = `Von: ${contact.value.name} (${contact.value.email})\n\n${contact.value.body}`;
+  const mailtoLink = `mailto:unihelp123@proton.me?subject=${encodeURIComponent(contact.value.subject)}&body=${encodeURIComponent(body)}`;
   window.location.href = mailtoLink;
 }
 </script>
@@ -168,6 +171,22 @@ function sendMail() {
 
         <div class="col-md-7">
           <form @submit.prevent="sendMail" class="shadow-sm contact-form">
+            <div class="row">
+              <div class="col-sm-6 contact-field">
+                <label class="contact-label">Name</label>
+                <input v-model="contact.name" type="text" placeholder="z.B. Max Mustermann" required
+                  class="contact-input"
+                  @focus="$event.target.style.backgroundColor = '#fff'; $event.target.style.borderColor = '#d4a218';"
+                  @blur="$event.target.style.backgroundColor = '#fafafa'; $event.target.style.borderColor = '#dcdcdc';" />
+              </div>
+              <div class="col-sm-6 contact-field">
+                <label class="contact-label">E-Mail</label>
+                <input v-model="contact.email" type="email" placeholder="deine@email.de" required
+                  class="contact-input"
+                  @focus="$event.target.style.backgroundColor = '#fff'; $event.target.style.borderColor = '#d4a218';"
+                  @blur="$event.target.style.backgroundColor = '#fafafa'; $event.target.style.borderColor = '#dcdcdc';" />
+              </div>
+            </div>
             <div class="contact-field">
               <label class="contact-label">Betreff</label>
               <input v-model="contact.subject" type="text" placeholder="z.B. Frage zur Registrierung" required

@@ -31,13 +31,15 @@ const router = createRouter({
       path: '/offers',
       name: 'offers',
       component: OfferCatalogView,
-      meta: { title: 'Angebote' }
+      meta: { title: 'Angebote' },
+      beforeEnter: authGuard
     },
     {
       path: '/offer/:id',
       name: 'offer-detail',
       component: OfferDetailView,
-      meta: { title: 'Angebot' }
+      meta: { title: 'Angebot' },
+      beforeEnter: authGuard
     },
     {
       path: '/offer/new',
@@ -131,7 +133,8 @@ const router = createRouter({
       path: '/user/:id',
       name: 'public-profile',
       component: PublicProfileView,
-      meta: { title: 'Fremdes Profil' }
+      meta: { title: 'Fremdes Profil' },
+      beforeEnter: authGuard
     },
   ]
 })

@@ -19,6 +19,7 @@ const isModerator = ref(false);
 const showModMenu = ref(false);
 const showReportModal = ref(false);
 const reportReason = ref('');
+const hasReported = ref(false);
 
 const selectedDate = ref(null);
 const selectedAvailabilityIndex = ref(null);
@@ -206,6 +207,7 @@ async function submitReport() {
     });
     showReportModal.value = false;
     reportReason.value = '';
+    hasReported.value = true;
     success('Angebot wurde gemeldet.');
   } catch (e) {
     showError('Melden fehlgeschlagen. Bitte versuche es erneut.');
@@ -313,11 +315,14 @@ function startChatWithTutor() {
         <button @click="startChatWithTutor" class="btn-message-outline w-100 mb-3 text-dark">Nachricht senden</button>
 
         <div class="text-center mt-2 pb-2">
-          <button v-if="!isModerator && !isOwnOffer" @click="showReportModal = true" class="report-link">⚠ Angebot
-            melden</button>
+          <button v-if="!isModerator && !isOwnOffer" @click="showReportModal = true"
+            class="report-link" :disabled="hasReported"
+            :style="hasReported ? 'opacity: 0.5; cursor: not-allowed;' : ''">
+            {{ hasReported ? '✓ Bereits gemeldet' : '⚠ Angebot melden' }}
+          </button>
         </div>
 
-        <hr class="my-5 border-light">
+        <hr class="my-3 border-light">
 
         <div class="mb-4">
           <div class="yellow-label mb-3">BEWERTUNGEN</div>
@@ -428,7 +433,7 @@ function startChatWithTutor() {
         <h3 class="fw-bold text-dark mb-1 fs-4 text-center">Angebot melden</h3>
         <p class="text-muted small text-center mb-4">Bitte gib einen Grund an.</p>
         <div class="mb-4">
-          <textarea v-model="reportReason" class="form-control" rows="3"
+          <textarea v-model="reportReason" class="form-control" rows="3" required
             placeholder="z.B. Unangemessener Inhalt, Betrug..."></textarea>
         </div>
         <div class="d-flex flex-column gap-2">

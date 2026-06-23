@@ -18,6 +18,9 @@ const bearerToken = ref('')
 const isEditing = ref(false)
 const showDeleteModal = ref(false)
 const formData = ref({})
+const myOffersCount = ref(0)
+const myBookingsCount = ref(0)
+const myRatingsCount = ref(0)
 
 const userInitials = computed(() => {
   if (profileData.value?.firstName && profileData.value?.lastName) {
@@ -51,6 +54,7 @@ function getRoleName(constant) {
 onMounted(async () => {
   if (isAuthenticated.value) {
     await loadProfile()
+    await loadActivityData()
   }
 })
 
@@ -71,6 +75,30 @@ async function loadProfile() {
     }
   } catch (e) {
     error.value = 'Netzwerkfehler beim Laden des Profils.'
+  }
+}
+
+async function loadActivityData() {
+  try {
+    const token = await getAccessTokenSilently()
+    const [offersRes, bookingsRes] = await Promise.all([
+      fetch(`${baseUrl}/api/offer`, { headers: { Authorization: `Bearer ${token}` } }),
+      fetch(`${baseUrl}/api/booking`, { headers: { Authorization: `Bearer ${token}` } })
+    ])
+    if (offersRes.ok) {
+      const allOffers = await offersRes.json()
+      const myOffers = allOffers.filter(o => o.ownerOauthId === user.value?.sub)
+      myOffersCount.value = myOffers.length
+    }
+    if (bookingsRes.ok) {
+      const allBookings = await bookingsRes.json()
+      myBookingsCount.value = allBookings.filter(b => b.studentOauthId === user.value?.sub).length
+      myRatingsCount.value = allBookings.filter(b =>
+        b.tutorOauthId === user.value?.sub && b.status === 'RATED'
+      ).length
+    }
+  } catch (e) {
+    console.error('Fehler beim Laden der Aktivitätsdaten', e)
   }
 }
 
@@ -110,6 +138,9 @@ async function saveProfile() {
       profileData.value = await response.json()
       isEditing.value = false
       success('Profil erfolgreich gespeichert.')
+    } else if (response.status === 409) {
+      showError('Dieser Nutzername ist bereits vergeben.')
+      actionError.value = 'Dieser Nutzername ist bereits vergeben.'
     } else {
       showError('Fehler beim Speichern der Daten.')
       actionError.value = 'Fehler beim Speichern der Daten. Bitte versuche es später erneut.'
@@ -170,16 +201,16 @@ async function confirmDeleteProfile() {
 
             <div class="stats-row d-flex justify-content-between mb-4">
               <div class="stat-box">
-                <span class="stat-number">0</span>
+                <span class="stat-number">{{ myOffersCount }}</span>
                 <span class="stat-label">Angebote</span>
               </div>
               <div class="stat-box">
-                <span class="stat-number">0</span>
-                <span class="stat-label">Bewertungen</span>
+                <span class="stat-number">{{ myBookingsCount }}</span>
+                <span class="stat-label">Buchungen</span>
               </div>
               <div class="stat-box border-0">
-                <span class="stat-number">- ★</span>
-                <span class="stat-label">ø Bewertung</span>
+                <span class="stat-number">{{ myRatingsCount }}</span>
+                <span class="stat-label">Bewertungen</span>
               </div>
             </div>
 
@@ -207,9 +238,15 @@ async function confirmDeleteProfile() {
         <div class="col-lg-7">
           <h6 class="text-warning fw-bold mb-3 text-uppercase activities-heading">Meine Aktivitäten</h6>
 
-          <ProfileActivityCard icon="✉️" title="Meine Angebote" subtitle="0 aktive Angebote" />
-          <ProfileActivityCard icon="📅" title="Buchungen" subtitle="Vergangene & anstehende" />
-          <ProfileActivityCard icon="⭐" title="Bewertungen" subtitle="0 Bewertungen erhalten" />
+          <div @click="router.push('/dashboard')">
+            <ProfileActivityCard icon="✉️" title="Meine Angebote" :subtitle="`${myOffersCount} aktive Angebote`" />
+          </div>
+          <div @click="router.push('/bookings')">
+            <ProfileActivityCard icon="📅" title="Buchungen" :subtitle="`${myBookingsCount} Buchungen insgesamt`" />
+          </div>
+          <div @click="router.push('/bookings')">
+            <ProfileActivityCard icon="⭐" title="Bewertungen" :subtitle="`${myRatingsCount} Bewertungen erhalten`" />
+          </div>
 
           <div @click="router.push('/moderation')">
             <ProfileActivityCard v-if="isModerator" icon="👤" title="Moderator Terminal" subtitle="Verwaltung" />
@@ -222,16 +259,7 @@ async function confirmDeleteProfile() {
         <div class="col-12 col-md-10 col-lg-8">
           <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border position-relative profile-card-border">
 
-            <button @click="cancelEditing"
-              class="btn btn-light rounded-circle shadow-sm border p-0 d-flex align-items-center justify-content-center position-absolute btn-back">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                class="bi bi-arrow-left" viewBox="0 0 16 16">
-                <path fill-rule="evenodd"
-                  d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" />
-              </svg>
-            </button>
-
-            <div class="text-center mb-4 mt-3 mt-md-0">
+            <div class="text-center mb-4">
               <h3 class="fw-bold text-dark mb-4">Konto bearbeiten</h3>
             </div>
 
@@ -301,6 +329,8 @@ async function confirmDeleteProfile() {
               <div class="mt-5 d-flex flex-column gap-3">
                 <button type="submit" class="btn btn-profile-yellow w-100 fw-bold fs-5 shadow-sm">Änderungen
                   speichern</button>
+                <button type="button" @click="cancelEditing"
+                  class="btn btn-outline-cancel-profile w-100 fw-bold fs-5 shadow-sm">Abbrechen</button>
                 <button type="button" @click="triggerDelete"
                   class="btn btn-red-delete w-100 fw-bold fs-5 shadow-sm">Konto löschen</button>
               </div>
@@ -310,7 +340,7 @@ async function confirmDeleteProfile() {
       </div>
     </div>
 
-    <div v-else class="text-center py-5">
+    <div v-else-if="!isLoading" class="text-center py-5">
       <h3 class="fw-bold">Zugriff verweigert</h3>
       <p class="text-muted">Bitte logge dich ein, um dein Profil zu sehen.</p>
     </div>
@@ -368,12 +398,18 @@ async function confirmDeleteProfile() {
   letter-spacing: 0.5px;
 }
 
-.btn-back {
-  width: 35px;
-  height: 35px;
-  top: 20px;
-  left: 20px;
-  z-index: 10;
+.btn-outline-cancel-profile {
+  background-color: transparent;
+  color: #212529;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 14px 0;
+  transition: all 0.2s;
+}
+
+.btn-outline-cancel-profile:hover {
+  background-color: #f8f9fa;
+  border-color: #ccc;
 }
 
 .input-readonly {
