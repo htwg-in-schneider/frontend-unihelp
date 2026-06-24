@@ -7,6 +7,10 @@ defineProps({
   showEditButton: {
     type: Boolean,
     default: false
+  },
+  isAuthenticated: {
+    type: Boolean,
+    default: true
   }
 });
 </script>
@@ -28,10 +32,13 @@ defineProps({
           class="fs-6 fw-normal text-muted">/Std.</span></p>
 
       <div class="mt-2 d-flex flex-column gap-2">
-        <router-link :to="`/offer/${offer.id}`"
+        <router-link v-if="isAuthenticated" :to="`/offer/${offer.id}`"
           class="btn btn-yellow-main w-100 fw-bold text-decoration-none text-center">
           Angebot ansehen
         </router-link>
+        <span v-else class="btn btn-locked w-100 fw-bold text-center">
+          Anmelden um Details zu sehen
+        </span>
         <router-link v-if="showEditButton" :to="`/offer/edit/${offer.id}`"
           class="btn btn-blue-dark w-100 fw-bold text-decoration-none text-center">
           Angebot bearbeiten
@@ -82,5 +89,15 @@ defineProps({
 .btn-blue-dark:hover {
   background-color: #153059;
   color: white;
+}
+
+.btn-locked {
+  background-color: #e9ecef;
+  color: #888;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 0;
+  font-size: 14px;
+  cursor: default;
 }
 </style>

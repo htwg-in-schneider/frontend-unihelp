@@ -31,8 +31,7 @@ const router = createRouter({
       path: '/offers',
       name: 'offers',
       component: OfferCatalogView,
-      meta: { title: 'Angebote' },
-      beforeEnter: authGuard
+      meta: { title: 'Angebote' }
     },
     {
       path: '/offer/:id',

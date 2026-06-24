@@ -117,7 +117,7 @@ function toggleSearch(term) {
 
       <div class="row offers-grid px-1">
         <div v-for="offer in offers" :key="offer.id" class="col-lg-4 col-md-6 mb-3">
-          <OfferCard :offer="offer"
+          <OfferCard :offer="offer" :is-authenticated="isAuthenticated"
             :show-edit-button="isAuthenticated && (isAdmin || (user && offer.ownerOauthId === user.sub))" />
         </div>
       </div>

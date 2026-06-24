@@ -15,6 +15,8 @@ const contact = ref({
   body: ''
 });
 
+const searchQuery = ref('');
+
 watchEffect(() => {
   if (isAuthenticated.value) {
     router.push('/dashboard');
@@ -24,6 +26,11 @@ watchEffect(() => {
 const handleLogin = () => {
   loginWithRedirect();
 };
+
+function performSearch() {
+  if (!searchQuery.value.trim()) return;
+  router.push({ path: '/offers', query: { search: searchQuery.value.trim() } });
+}
 
 function sendMail() {
   const body = `Von: ${contact.value.name} (${contact.value.email})\n\n${contact.value.body}`;
@@ -40,8 +47,8 @@ function sendMail() {
         weitergeben wollen und das an deiner Hochschule.</p>
 
       <div class="search-bar">
-        <input type="text" placeholder="Modul suchen, z.B. Webtechnologien" />
-        <button class="search-button">Suchen</button>
+        <input type="text" v-model="searchQuery" placeholder="Modul suchen, z.B. Webtechnologien" @keydown.enter="performSearch" />
+        <button class="search-button" @click="performSearch">Suchen</button>
       </div>
 
       <div class="hero-actions">

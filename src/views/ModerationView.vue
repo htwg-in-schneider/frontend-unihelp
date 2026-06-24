@@ -17,6 +17,9 @@ const showActionMenu = ref(false);
 const showBanMenu = ref(false);
 const selectedTarget = ref(null);
 
+const showRoleMenu = ref(false);
+const selectedRoleUser = ref(null);
+
 const banMode = ref('PERMANENT');
 const banUntilDate = ref('');
 const banReason = ref('');
@@ -39,6 +42,48 @@ const filteredUsers = computed(() => {
     return usersList.value.filter(u =>
         (u.firstName + ' ' + u.lastName).toLowerCase().includes(q) ||
         (u.email || '').toLowerCase().includes(q)
+    );
+});
+
+const suspensionSearch = ref('');
+const filteredSuspensions = computed(() => {
+    if (!suspensionSearch.value.trim()) return suspensionsList.value;
+    const q = suspensionSearch.value.toLowerCase();
+    return suspensionsList.value.filter(s =>
+        ((s.user?.firstName || '') + ' ' + (s.user?.lastName || '')).toLowerCase().includes(q) ||
+        (s.user?.email || '').toLowerCase().includes(q)
+    );
+});
+
+const offerSearch = ref('');
+const filteredOffers = computed(() => {
+    if (!offerSearch.value.trim()) return offersList.value;
+    const q = offerSearch.value.toLowerCase();
+    return offersList.value.filter(o =>
+        (o.module || '').toLowerCase().includes(q) ||
+        (o.ownerName || '').toLowerCase().includes(q)
+    );
+});
+
+const reviewSearch = ref('');
+const filteredReviews = computed(() => {
+    if (!reviewSearch.value.trim()) return reviewsList.value;
+    const q = reviewSearch.value.toLowerCase();
+    return reviewsList.value.filter(rv =>
+        (rv.offerModule || '').toLowerCase().includes(q) ||
+        (rv.offerOwnerName || '').toLowerCase().includes(q) ||
+        (rv.ratingComment || '').toLowerCase().includes(q)
+    );
+});
+
+const bookingSearch = ref('');
+const filteredBookings = computed(() => {
+    if (!bookingSearch.value.trim()) return bookingsList.value;
+    const q = bookingSearch.value.toLowerCase();
+    return bookingsList.value.filter(b =>
+        (b.studentName || '').toLowerCase().includes(q) ||
+        (b.tutorName || '').toLowerCase().includes(q) ||
+        (b.offer?.module || '').toLowerCase().includes(q)
     );
 });
 
@@ -298,6 +343,33 @@ async function executeBan() {
     }
 }
 
+function openRoleMenu(user) {
+    selectedRoleUser.value = user;
+    showRoleMenu.value = true;
+}
+
+function closeRoleMenu() {
+    showRoleMenu.value = false;
+    selectedRoleUser.value = null;
+}
+
+async function changeUserRole(newRole) {
+    if (!selectedRoleUser.value) return;
+    try {
+        const token = await getAccessTokenSilently();
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/moderation/user/${selectedRoleUser.value.id}/role`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ role: newRole })
+        });
+        success(`Rolle zu ${newRole} geändert.`);
+        await initDashboard();
+        closeRoleMenu();
+    } catch (e) {
+        error("Rollenänderung fehlgeschlagen.");
+    }
+}
+
 async function deleteReview(review) {
     try {
         const token = await getAccessTokenSilently();
@@ -387,8 +459,8 @@ async function deleteReview(review) {
                     </div>
 
                     <div v-if="activeSection === 'USERS'" class="table-responsive">
-                        <input v-model="userSearch" type="text" class="form-control mb-3"
-                            placeholder="Nach Name oder E-Mail suchen..." style="border-radius: 8px; max-width: 360px;">
+                        <input v-model="userSearch" type="text" class="search-input mb-3"
+                            placeholder="Nach Name oder E-Mail suchen...">
                         <table class="table align-middle">
                             <thead class="table-light text-muted small fw-bold">
                                 <tr>
@@ -409,12 +481,16 @@ async function deleteReview(review) {
                                         </router-link>
                                     </td>
                                     <td>{{ u.email }}</td>
-                                    <td><span class="badge bg-dark">{{ u.role }}</span></td>
+                                    <td>
+                                        <span class="badge bg-dark">{{ u.role }}</span>
+                                    </td>
                                     <td>
                                         <span v-if="u.isDeleted" class="badge bg-danger">Gelöscht</span>
                                         <span v-else class="badge bg-success">Aktiv</span>
                                     </td>
-                                    <td class="text-end">
+                                    <td class="text-end d-flex gap-2 justify-content-end">
+                                        <button v-if="userRole === 'ADMIN'" @click="openRoleMenu(u)"
+                                            class="btn btn-sm btn-outline-primary fw-bold">Rolle</button>
                                         <button @click="openUserAction(u)"
                                             class="btn btn-sm btn-outline-dark fw-bold">Verwalten</button>
                                     </td>
@@ -424,7 +500,9 @@ async function deleteReview(review) {
                     </div>
 
                     <div v-if="activeSection === 'SUSPENSIONS'">
-                        <div v-if="suspensionsList.length === 0"
+                        <input v-model="suspensionSearch" type="text" class="search-input mb-3"
+                            placeholder="Nach Name oder E-Mail suchen...">
+                        <div v-if="filteredSuspensions.length === 0"
                             class="text-muted p-4 bg-light rounded text-center border">Keine
                             gesperrten Nutzer.</div>
                         <div v-else class="table-responsive">
@@ -440,7 +518,7 @@ async function deleteReview(review) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="s in suspensionsList" :key="s.id">
+                                    <tr v-for="s in filteredSuspensions" :key="s.id">
                                         <td class="fw-bold">
                                             <router-link v-if="s.user?.oauthId" :to="`/user/${s.user.oauthId}`"
                                                 class="table-link">
@@ -468,6 +546,8 @@ async function deleteReview(review) {
                     </div>
 
                     <div v-if="activeSection === 'OFFERS'" class="table-responsive">
+                        <input v-model="offerSearch" type="text" class="search-input mb-3"
+                            placeholder="Nach Modul oder Tutor suchen...">
                         <table class="table align-middle">
                             <thead class="table-light text-muted small fw-bold">
                                 <tr>
@@ -480,7 +560,7 @@ async function deleteReview(review) {
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="o in offersList" :key="o.id">
+                                <tr v-for="o in filteredOffers" :key="o.id">
                                     <td class="text-muted small">#{{ o.id }}</td>
                                     <td class="fw-bold">
                                         <router-link :to="`/offer/${o.id}`" class="table-link">{{ o.module
@@ -503,9 +583,10 @@ async function deleteReview(review) {
                     </div>
 
                     <div v-if="activeSection === 'REVIEWS'">
-                        <div v-if="reviewsList.length === 0" class="text-muted p-4 bg-light rounded text-center border">
-                            Keine
-                            Bewertungen vorhanden.</div>
+                        <input v-model="reviewSearch" type="text" class="search-input mb-3"
+                            placeholder="Nach Angebot, Tutor oder Kommentar suchen...">
+                        <div v-if="filteredReviews.length === 0" class="text-muted p-4 bg-light rounded text-center border">
+                            Keine Bewertungen vorhanden.</div>
                         <div v-else class="table-responsive">
                             <table class="table align-middle">
                                 <thead class="table-light text-muted small fw-bold">
@@ -518,7 +599,7 @@ async function deleteReview(review) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="rv in reviewsList" :key="rv.id">
+                                    <tr v-for="rv in filteredReviews" :key="rv.id">
                                         <td class="fw-bold">
                                             <router-link :to="`/offer/${rv.offerId}`" class="table-link">{{
                                                 rv.offerModule
@@ -548,6 +629,8 @@ async function deleteReview(review) {
                     </div>
 
                     <div v-if="activeSection === 'BOOKINGS'" class="table-responsive">
+                        <input v-model="bookingSearch" type="text" class="search-input mb-3"
+                            placeholder="Nach Student, Tutor oder Angebot suchen...">
                         <table class="table align-middle">
                             <thead class="table-light text-muted small fw-bold">
                                 <tr>
@@ -560,7 +643,7 @@ async function deleteReview(review) {
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="b in bookingsList" :key="b.id">
+                                <tr v-for="b in filteredBookings" :key="b.id">
                                     <td class="text-muted small">#{{ b.id }}</td>
                                     <td class="fw-bold">
                                         <router-link :to="`/user/${b.studentOauthId}`" class="table-link">{{
@@ -616,6 +699,22 @@ async function deleteReview(review) {
                     </template>
 
                     <button @click="closeModals" class="btn-modal-outline border-0 text-muted mt-2">Abbrechen</button>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="showRoleMenu" class="modal-overlay d-flex justify-content-center align-items-center">
+            <div class="custom-modal bg-white p-4 rounded-4 shadow-lg text-center">
+                <h3 class="fw-bold text-dark mb-1 fs-4">Rolle ändern</h3>
+                <p class="text-muted small mb-4">{{ selectedRoleUser?.firstName }} {{ selectedRoleUser?.lastName }}</p>
+                <div class="d-flex flex-column gap-3">
+                    <button @click="changeUserRole('ADMIN')" class="btn-modal-role"
+                        :class="{ 'active-role': selectedRoleUser?.role === 'ADMIN' }">ADMIN</button>
+                    <button @click="changeUserRole('MODERATOR')" class="btn-modal-role"
+                        :class="{ 'active-role': selectedRoleUser?.role === 'MODERATOR' }">MODERATOR</button>
+                    <button @click="changeUserRole('STUDENT')" class="btn-modal-role"
+                        :class="{ 'active-role': selectedRoleUser?.role === 'STUDENT' }">STUDENT</button>
+                    <button @click="closeRoleMenu" class="btn-modal-outline border-0 text-muted mt-2">Abbrechen</button>
                 </div>
             </div>
         </div>
@@ -682,8 +781,8 @@ async function deleteReview(review) {
 }
 
 .tab-btn.active {
-    background-color: #111827;
-    border-color: #111827;
+    background-color: #2b487b;
+    border-color: #2b487b;
     color: #ffffff;
 }
 
@@ -793,5 +892,44 @@ async function deleteReview(review) {
 .table-link:hover {
     opacity: 0.7;
     text-decoration: underline;
+}
+
+.search-input {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+    width: 100%;
+    max-width: 360px;
+    outline: none;
+    box-shadow: none;
+    display: block;
+}
+
+.search-input:focus {
+    outline: none;
+    box-shadow: none;
+    border-color: #adb5bd;
+}
+
+.btn-modal-role {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    color: #111827;
+    font-weight: bold;
+    border: 1px solid #dee2e6;
+    transition: all 0.15s;
+}
+
+.btn-modal-role:hover {
+    background-color: #e9ecef;
+}
+
+.btn-modal-role.active-role {
+    background-color: #2b487b;
+    color: white;
+    border-color: #2b487b;
 }
 </style>

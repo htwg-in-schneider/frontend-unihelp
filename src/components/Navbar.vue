@@ -81,7 +81,7 @@ function scrollTo(id) {
       <div v-if="showCenteredTitle"
         class="position-absolute start-50 translate-middle-x text-center d-md-none navbar-center">
         <router-link class="navbar-brand fw-bold text-dark text-decoration-none mx-0 p-0 m-0 d-block brand-link-mobile"
-          to="/dashboard" @click="closeMenu">UniHelp</router-link>
+          :to="isAuthenticated ? '/dashboard' : '/'" @click="closeMenu">UniHelp</router-link>
         <div class="fw-bold text-dark fs-4 page-title-mobile">
           {{ route.path.startsWith('/moderation') ? 'Moderation' : (route.meta.title || 'Angebot') }}
         </div>
@@ -112,6 +112,15 @@ function scrollTo(id) {
             </li>
             <li class="nav-item mobile-nav-item">
               <a class="nav-link text-dark" href="#for-tutors" @click.prevent="scrollTo('for-tutors')">Tutor werden</a>
+            </li>
+            <li class="nav-item mobile-nav-item d-md-none">
+              <hr class="my-1 border-secondary opacity-25" />
+            </li>
+            <li class="nav-item mobile-nav-item d-md-none">
+              <router-link class="nav-link text-dark opacity-75" to="/imprint" @click="closeMenu">Impressum</router-link>
+            </li>
+            <li class="nav-item mobile-nav-item d-md-none">
+              <router-link class="nav-link text-dark opacity-75" to="/privacy" @click="closeMenu">Datenschutz</router-link>
             </li>
           </ul>
 
