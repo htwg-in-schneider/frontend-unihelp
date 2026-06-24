@@ -24,7 +24,6 @@ const reportReason = ref('');
 
 onMounted(async () => {
     if (isAuthenticated.value) {
-        await loadFormats();
         await loadBookings();
     } else {
         isLoading.value = false;

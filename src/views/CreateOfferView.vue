@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth0 } from '@auth0/auth0-vue';
 import { useToast } from '../composables/useToast.js';
@@ -10,8 +10,6 @@ const { getAccessTokenSilently } = useAuth0();
 const { success, error: showError } = useToast();
 const { formatOptions } = useFormats();
 const url = `${import.meta.env.VITE_API_BASE_URL}/api/offer`;
-
-onMounted(() => loadFormats());
 
 const today = new Date().toISOString().split('T')[0];
 

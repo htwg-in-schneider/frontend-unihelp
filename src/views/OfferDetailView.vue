@@ -9,7 +9,7 @@ const route = useRoute();
 const router = useRouter();
 const { user, isAuthenticated, getAccessTokenSilently, loginWithRedirect } = useAuth0();
 const { success, error: showError } = useToast();
-const { loadFormats, getFormatLabel } = useFormats();
+const { getFormatLabel } = useFormats();
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
 const offer = ref(null);
@@ -33,7 +33,6 @@ const isOwnOffer = computed(() => {
 });
 
 onMounted(async () => {
-  loadFormats();
   await fetchOffer();
   await fetchReviews();
   if (isAuthenticated.value) {

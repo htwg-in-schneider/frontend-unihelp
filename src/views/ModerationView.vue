@@ -8,7 +8,7 @@ import { useFormats } from '../composables/useFormats.js';
 const router = useRouter();
 const { getAccessTokenSilently } = useAuth0();
 const { success, error } = useToast();
-const { loadFormats, getFormatLabel } = useFormats();
+const { getFormatLabel } = useFormats();
 
 const userRole = ref('');
 const activeSection = ref('REPORTS');
@@ -98,7 +98,6 @@ const todayStr = computed(() => {
 });
 
 onMounted(async () => {
-    loadFormats();
     await initDashboard();
 });
 

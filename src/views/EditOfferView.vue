@@ -9,7 +9,7 @@ const route = useRoute();
 const router = useRouter();
 const { getAccessTokenSilently } = useAuth0();
 const { success, error: showError } = useToast();
-const { loadFormats, formatOptions } = useFormats();
+const { formatOptions } = useFormats();
 const url = `${import.meta.env.VITE_API_BASE_URL}/api/offer`;
 const today = new Date().toISOString().split('T')[0];
 
@@ -19,7 +19,6 @@ const offer = ref({
 const showDeleteModal = ref(false);
 
 onMounted(() => {
-    loadFormats();
     fetchOffer();
 });
 

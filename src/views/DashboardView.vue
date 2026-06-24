@@ -14,18 +14,16 @@ const profileData = ref(null);
 const myOffers = ref([]);
 const upcomingAppointments = ref([]);
 
-onMounted(async () => {
+onMounted(() => {
     if (isAuthenticated.value) {
-        await loadFormats();
         loadProfile();
         fetchMyOffers();
         fetchUpcomingAppointments();
     }
 });
 
-watch(isAuthenticated, async (newVal) => {
+watch(isAuthenticated, (newVal) => {
     if (newVal) {
-        await loadFormats();
         loadProfile();
         fetchMyOffers();
         fetchUpcomingAppointments();
