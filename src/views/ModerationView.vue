@@ -6,7 +6,7 @@ import { useToast } from '../composables/useToast.js';
 import { useFormats } from '../composables/useFormats.js';
 
 const router = useRouter();
-const { getAccessTokenSilently } = useAuth0();
+const { user, getAccessTokenSilently } = useAuth0();
 const { success, error } = useToast();
 const { getFormatLabel } = useFormats();
 
@@ -91,6 +91,12 @@ const filteredBookings = computed(() => {
 
 const openReportsCount = computed(() => reports.value.filter(r => r.status === 'OPEN').length);
 
+const isSelfTarget = computed(() =>
+    selectedTarget.value?.targetType === 'USER' &&
+    selectedTarget.value?.oauthId != null &&
+    selectedTarget.value.oauthId === user.value?.sub
+);
+
 const todayStr = computed(() => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
@@ -161,6 +167,7 @@ async function initDashboard() {
                 let ownerName = '';
                 let activeSuspension = null;
                 let isUserDeleted = false;
+                let targetOauthId = null;
 
                 if (r.targetType === 'OFFER') {
                     const offer = offersList.value.find(o => String(o.id) === String(r.targetId));
@@ -175,6 +182,7 @@ async function initDashboard() {
                     if (u) {
                         name = [u.firstName, u.lastName].filter(Boolean).join(' ') || u.username || u.email;
                         isUserDeleted = u.isDeleted === true;
+                        targetOauthId = u.oauthId;
                     }
                     activeSuspension = suspensionsList.value.find(s => s.user && String(s.user.id) === String(r.targetId));
                 }
@@ -183,6 +191,7 @@ async function initDashboard() {
                     id: r.id,
                     targetType: r.targetType,
                     targetId: r.targetId,
+                    oauthId: targetOauthId,
                     title: name,
                     owner: ownerName,
                     count: 0,
@@ -235,14 +244,14 @@ function openActionMenu(item) {
     showActionMenu.value = true;
 }
 
-function openUserAction(user) {
-    selectedTarget.value = { targetType: 'USER', targetId: user.id, isDeleted: user.isDeleted };
+function openUserAction(targetUser) {
+    selectedTarget.value = { targetType: 'USER', targetId: targetUser.id, oauthId: targetUser.oauthId, isDeleted: targetUser.isDeleted };
     showActionMenu.value = true;
 }
 
 function openSuspensionAction(suspension) {
     const u = suspension.user;
-    selectedTarget.value = { targetType: 'USER', targetId: u.id, isDeleted: u.isDeleted, suspensionId: suspension.id };
+    selectedTarget.value = { targetType: 'USER', targetId: u.id, oauthId: u.oauthId, isDeleted: u.isDeleted, suspensionId: suspension.id };
     showActionMenu.value = true;
 }
 
@@ -326,21 +335,6 @@ async function executeUnban() {
 
 async function executeBan() {
     if (!banReason.value) return;
-
-    if (banMode.value === 'TEMPORARY') {
-        if (!banUntilDate.value) {
-            error('Bitte ein Datum für die temporäre Sperre angeben.');
-            return;
-        }
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const selected = new Date(banUntilDate.value);
-        if (isNaN(selected) || selected < today) {
-            error('Das Sperrdatum muss in der Zukunft liegen.');
-            return;
-        }
-    }
-
     try {
         const token = await getAccessTokenSilently();
         const payload = {
@@ -705,11 +699,14 @@ async function deleteReview(review) {
                     </template>
 
                     <template v-if="selectedTarget?.targetType === 'USER'">
-                        <button @click="showBanMenu = true" class="btn-modal-yellow mt-2">Benutzer sperren</button>
+                        <p v-if="isSelfTarget" class="text-muted small text-center mb-1">
+                            Du kannst dein eigenes Konto nicht sperren oder löschen.
+                        </p>
+                        <button v-if="!isSelfTarget" @click="showBanMenu = true" class="btn-modal-yellow mt-2">Benutzer sperren</button>
                         <button @click="executeUnban" class="btn-modal-green">Sperre aufheben</button>
-                        <button v-if="!selectedTarget.isDeleted" @click="executeDelete" class="btn-modal-red">Benutzer
+                        <button v-if="!selectedTarget.isDeleted && !isSelfTarget" @click="executeDelete" class="btn-modal-red">Benutzer
                             löschen</button>
-                        <button v-else @click="executeRestore" class="btn-modal-green">Profil wiederherstellen</button>
+                        <button v-else-if="selectedTarget.isDeleted" @click="executeRestore" class="btn-modal-green">Profil wiederherstellen</button>
                     </template>
 
                     <template v-if="selectedTarget?.targetType === 'OFFER'">
@@ -740,27 +737,30 @@ async function deleteReview(review) {
         <div v-if="showBanMenu" class="modal-overlay d-flex justify-content-center align-items-center">
             <div class="custom-modal bg-white p-4 rounded-4 shadow-lg text-start">
                 <h3 class="fw-bold text-dark mb-4 fs-4 text-center">Benutzer sperren</h3>
-                <div class="mb-3">
-                    <label class="fw-bold text-dark mb-2 fs-6 d-block">Sperr-Typ</label>
-                    <select v-model="banMode" class="form-select border-secondary">
-                        <option value="PERMANENT">Permanent</option>
-                        <option value="TEMPORARY">Temporär</option>
-                    </select>
-                </div>
-                <div v-if="banMode === 'TEMPORARY'" class="mb-3">
-                    <label class="fw-bold text-dark mb-2 fs-6 d-block">Gesperrt bis</label>
-                    <input type="date" v-model="banUntilDate" :min="todayStr" class="form-control border-secondary" />
-                </div>
-                <div class="mb-4">
-                    <label class="fw-bold text-dark mb-2 fs-6 d-block">Grund für die Sperre</label>
-                    <textarea v-model="banReason" class="form-control" rows="3"
-                        placeholder="Verstoß gegen die Richtlinien..."></textarea>
-                </div>
-                <div class="d-flex flex-column gap-2">
-                    <button @click="executeBan" class="btn-modal-yellow"
-                        :disabled="!banReason || (banMode === 'TEMPORARY' && !banUntilDate)">Sperre vollziehen</button>
-                    <button @click="closeModals" class="btn-modal-outline border-0 text-muted">Abbrechen</button>
-                </div>
+                <form @submit.prevent="executeBan">
+                    <div class="mb-3">
+                        <label class="fw-bold text-dark mb-2 fs-6 d-block">Sperr-Typ</label>
+                        <select v-model="banMode" class="form-select border-secondary">
+                            <option value="PERMANENT">Permanent</option>
+                            <option value="TEMPORARY">Temporär</option>
+                        </select>
+                    </div>
+                    <div v-if="banMode === 'TEMPORARY'" class="mb-3">
+                        <label class="fw-bold text-dark mb-2 fs-6 d-block">Gesperrt bis</label>
+                        <input type="date" v-model="banUntilDate" :min="todayStr" required
+                            class="form-control border-secondary" />
+                    </div>
+                    <div class="mb-4">
+                        <label class="fw-bold text-dark mb-2 fs-6 d-block">Grund für die Sperre</label>
+                        <textarea v-model="banReason" class="form-control" rows="3" required
+                            placeholder="Verstoß gegen die Richtlinien..."></textarea>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <button type="submit" class="btn-modal-yellow">Sperre vollziehen</button>
+                        <button type="button" @click="closeModals"
+                            class="btn-modal-outline border-0 text-muted">Abbrechen</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
