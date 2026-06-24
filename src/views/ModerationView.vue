@@ -3,10 +3,12 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth0 } from '@auth0/auth0-vue';
 import { useToast } from '../composables/useToast.js';
+import { useFormats } from '../composables/useFormats.js';
 
 const router = useRouter();
 const { getAccessTokenSilently } = useAuth0();
 const { success, error } = useToast();
+const { loadFormats, getFormatLabel } = useFormats();
 
 const userRole = ref('');
 const activeSection = ref('REPORTS');
@@ -96,15 +98,9 @@ const todayStr = computed(() => {
 });
 
 onMounted(async () => {
+    loadFormats();
     await initDashboard();
 });
-
-function getFormatLabel(format) {
-    if (format === 'ONLINE') return 'Online';
-    if (format === 'PRAESENZ') return 'Präsenz';
-    if (format === 'HYBRID') return 'Online & Präsenz';
-    return format;
-}
 
 function getStatusLabel(status) {
     switch (status) {

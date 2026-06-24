@@ -1,13 +1,17 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth0 } from '@auth0/auth0-vue';
 import { useToast } from '../composables/useToast.js';
+import { useFormats } from '../composables/useFormats.js';
 
 const router = useRouter();
 const { getAccessTokenSilently } = useAuth0();
 const { success, error: showError } = useToast();
+const { formatOptions } = useFormats();
 const url = `${import.meta.env.VITE_API_BASE_URL}/api/offer`;
+
+onMounted(() => loadFormats());
 
 const today = new Date().toISOString().split('T')[0];
 
@@ -117,9 +121,7 @@ async function saveOffer() {
                             <label class="form-label fw-bold text-dark">Format<span class="text-danger">*</span></label>
                             <select v-model="offer.format" class="form-select custom-input" required>
                                 <option value="" disabled selected>Bitte wählen...</option>
-                                <option value="ONLINE">Online</option>
-                                <option value="PRAESENZ">Präsenz</option>
-                                <option value="HYBRID">Online & Präsenz</option>
+                                <option v-for="opt in formatOptions()" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
                             </select>
                         </div>
                         <div class="col-md-4 mb-4">

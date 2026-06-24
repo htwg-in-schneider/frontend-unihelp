@@ -2,9 +2,11 @@
 import { ref, onMounted, watch } from 'vue';
 import { useAuth0 } from '@auth0/auth0-vue';
 import { useRouter } from 'vue-router';
+import { useFormats } from '../composables/useFormats.js';
 
 const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
 const router = useRouter();
+const { getFormatLabel } = useFormats();
 const searchQuery = ref('');
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -12,16 +14,18 @@ const profileData = ref(null);
 const myOffers = ref([]);
 const upcomingAppointments = ref([]);
 
-onMounted(() => {
+onMounted(async () => {
     if (isAuthenticated.value) {
+        await loadFormats();
         loadProfile();
         fetchMyOffers();
         fetchUpcomingAppointments();
     }
 });
 
-watch(isAuthenticated, (newVal) => {
+watch(isAuthenticated, async (newVal) => {
     if (newVal) {
+        await loadFormats();
         loadProfile();
         fetchMyOffers();
         fetchUpcomingAppointments();
@@ -51,7 +55,7 @@ async function fetchUpcomingAppointments() {
                         person: isStudent ? (b.tutorName || 'Tutor') : (b.studentName || 'Student'),
                         status: isStudent ? 'GEBUCHT' : 'TUTOR',
                         time: b.availability.startTime.substring(0, 5),
-                        format: formatLabel(b.offer.format)
+                        format: getFormatLabel(b.offer.format)
                     };
                 });
         }
@@ -102,11 +106,6 @@ function getFirstName() {
         return nameStr.includes('@') ? nameStr.split('@')[0] : nameStr.split(' ')[0];
     }
     return 'Student';
-}
-
-function formatLabel(format) {
-    const map = { ONLINE: 'Online', PRAESENZ: 'Präsenz', HYBRID: 'Online & Präsenz' };
-    return map[format] ?? format;
 }
 
 function editOffer(id) { router.push(`/offer/edit/${id}`); }

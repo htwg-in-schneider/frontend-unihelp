@@ -3,11 +3,13 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuth0 } from '@auth0/auth0-vue';
 import { useToast } from '../composables/useToast.js';
+import { useFormats } from '../composables/useFormats.js';
 
 const route = useRoute();
 const router = useRouter();
 const { user, isAuthenticated, getAccessTokenSilently, loginWithRedirect } = useAuth0();
 const { success, error: showError } = useToast();
+const { loadFormats, getFormatLabel } = useFormats();
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
 const offer = ref(null);
@@ -31,6 +33,7 @@ const isOwnOffer = computed(() => {
 });
 
 onMounted(async () => {
+  loadFormats();
   await fetchOffer();
   await fetchReviews();
   if (isAuthenticated.value) {
@@ -84,13 +87,6 @@ async function checkModeratorRole() {
     }
   } catch (e) {
   }
-}
-
-function getFormatLabel(format) {
-  if (format === 'ONLINE') return 'Online';
-  if (format === 'PRAESENZ') return 'Präsenz';
-  if (format === 'HYBRID') return 'Online & Präsenz';
-  return format;
 }
 
 function formatShortDate(dateInput) {

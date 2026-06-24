@@ -3,11 +3,13 @@ import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuth0 } from '@auth0/auth0-vue';
 import { useToast } from '../composables/useToast.js';
+import { useFormats } from '../composables/useFormats.js';
 
 const router = useRouter();
 const route = useRoute();
 const { success, error } = useToast();
 const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
+const { getFormatLabel } = useFormats();
 
 const activeTab = ref(route.query.tab === 'tutor' ? 'tutor' : 'student');
 const isLoading = ref(true);
@@ -22,6 +24,7 @@ const reportReason = ref('');
 
 onMounted(async () => {
     if (isAuthenticated.value) {
+        await loadFormats();
         await loadBookings();
     } else {
         isLoading.value = false;
@@ -59,7 +62,7 @@ async function loadBookings() {
                 date: bookingDate.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' }),
                 time: b.availability.startTime.substring(0, 5),
                 endTime: b.availability.endTime ? b.availability.endTime.substring(0, 5) : null,
-                format: formatLabel(b.offer.format),
+                format: getFormatLabel(b.offer.format),
                 subject: b.offer.module,
                 uni: b.offer.university,
                 tutorName: tName,
@@ -81,11 +84,6 @@ async function loadBookings() {
     } finally {
         isLoading.value = false;
     }
-}
-
-function formatLabel(format) {
-    const map = { ONLINE: 'Online', PRAESENZ: 'Präsenz', HYBRID: 'Online & Präsenz' };
-    return map[format] ?? format;
 }
 
 function getInitials(name) {
