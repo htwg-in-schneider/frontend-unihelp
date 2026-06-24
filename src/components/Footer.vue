@@ -83,7 +83,7 @@ function scrollToContact() {
     </footer>
 
     <div v-if="isAppPage && !isFormMode"
-      class="mobile-bottom-nav d-md-none bg-white border-top fixed-bottom d-flex justify-content-around py-2 shadow-sm">
+      class="mobile-bottom-nav d-lg-none bg-white border-top fixed-bottom d-flex justify-content-around py-2 shadow-sm">
 
       <router-link to="/dashboard" class="nav-item text-decoration-none text-center"
         :class="{ 'active-blue': route.path === '/dashboard' || route.path === '/offers' }">
@@ -193,7 +193,7 @@ function scrollToContact() {
   line-height: 1.2;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 991px) {
   .hide-on-mobile-app {
     display: none !important;
   }

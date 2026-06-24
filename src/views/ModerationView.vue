@@ -113,7 +113,15 @@ function getStatusLabel(status) {
 
 function formatDate(dateStr) {
     if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('de-DE');
+    let d;
+    if (Array.isArray(dateStr)) {
+        d = new Date(Date.UTC(dateStr[0], dateStr[1] - 1, dateStr[2], dateStr[3] || 0, dateStr[4] || 0, dateStr[5] || 0));
+    } else {
+        const hasTimezone = /[zZ]|[+-]\d{2}:?\d{2}$/.test(dateStr);
+        d = new Date(hasTimezone ? dateStr : dateStr + 'Z');
+    }
+    if (isNaN(d)) return '—';
+    return d.toLocaleDateString('de-DE');
 }
 
 async function initDashboard() {
@@ -318,6 +326,21 @@ async function executeUnban() {
 
 async function executeBan() {
     if (!banReason.value) return;
+
+    if (banMode.value === 'TEMPORARY') {
+        if (!banUntilDate.value) {
+            error('Bitte ein Datum für die temporäre Sperre angeben.');
+            return;
+        }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const selected = new Date(banUntilDate.value);
+        if (isNaN(selected) || selected < today) {
+            error('Das Sperrdatum muss in der Zukunft liegen.');
+            return;
+        }
+    }
+
     try {
         const token = await getAccessTokenSilently();
         const payload = {
@@ -529,7 +552,7 @@ async function deleteReview(review) {
                                             </span>
                                         </td>
                                         <td class="text-muted small" style="max-width:220px">{{ s.reason || '—' }}</td>
-                                        <td class="small">{{ s.until ? formatDate(s.until) : 'Unbegrenzt' }}</td>
+                                        <td class="small">{{ s.untilDate ? formatDate(s.untilDate) : 'Unbegrenzt' }}</td>
                                         <td class="text-end">
                                             <button @click="openSuspensionAction(s)"
                                                 class="btn btn-sm btn-outline-dark fw-bold">Verwalten</button>
@@ -746,7 +769,6 @@ async function deleteReview(review) {
 <style scoped>
 .moderation-page-wrapper {
     background-color: #f7f4ed;
-    min-height: 100vh;
     padding-top: 40px;
     padding-bottom: 80px;
 }

@@ -152,9 +152,10 @@ function formatChatTime(dateStr) {
     if (!dateStr) return '';
     let d;
     if (Array.isArray(dateStr)) {
-        d = new Date(dateStr[0], dateStr[1] - 1, dateStr[2], dateStr[3] || 0, dateStr[4] || 0);
+        d = new Date(Date.UTC(dateStr[0], dateStr[1] - 1, dateStr[2], dateStr[3] || 0, dateStr[4] || 0, dateStr[5] || 0));
     } else {
-        d = new Date(dateStr);
+        const hasTimezone = /[zZ]|[+-]\d{2}:?\d{2}$/.test(dateStr);
+        d = new Date(hasTimezone ? dateStr : dateStr + 'Z');
     }
 
     if (isNaN(d)) return '';

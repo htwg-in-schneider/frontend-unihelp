@@ -97,12 +97,9 @@ function getBookedCount(offer) {
 }
 
 function getFirstName() {
-    if (profileData.value && profileData.value.firstName) return profileData.value.firstName;
-    if (user.value?.given_name) return user.value.given_name;
-    if (user.value?.name) {
-        const nameStr = user.value.name;
-        return nameStr.includes('@') ? nameStr.split('@')[0] : nameStr.split(' ')[0];
-    }
+    if (!profileData.value) return '';
+    if (profileData.value.firstName) return profileData.value.firstName;
+    if (profileData.value.name) return profileData.value.name.split(' ')[0];
     return 'Student';
 }
 
@@ -118,7 +115,7 @@ function searchOffers() {
         <div class="container py-4 py-lg-5 dashboard-container">
 
             <div class="mb-3 mt-2 mx-auto search-container-wrapper">
-                <h1 class="fw-bold text-dark fs-2 mb-3 text-start">Guten Tag, {{ getFirstName() }}</h1>
+                <h1 class="fw-bold text-dark fs-2 mb-3 text-start">Guten Tag<span v-if="getFirstName()">, {{ getFirstName() }}</span></h1>
 
                 <form @submit.prevent="searchOffers" class="search-container position-relative w-100">
                     <input v-model="searchQuery" type="text"

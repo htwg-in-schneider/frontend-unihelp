@@ -43,7 +43,7 @@ const isAppPage = computed(() => {
   padding-bottom: 0;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 991px) {
   .has-mobile-nav .main-content {
     padding-bottom: 80px !important;
   }

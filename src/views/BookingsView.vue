@@ -569,7 +569,6 @@ async function submitReport() {
 .bookings-wrapper {
     padding-bottom: 80px;
     background-color: #f7f4ed;
-    min-height: 100vh;
 }
 
 .modal-overlay {

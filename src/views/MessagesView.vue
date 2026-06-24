@@ -17,9 +17,10 @@ onMounted(async () => {
 function parseSpringDate(dateInput) {
     if (!dateInput) return new Date();
     if (Array.isArray(dateInput)) {
-        return new Date(dateInput[0], dateInput[1] - 1, dateInput[2], dateInput[3] || 0, dateInput[4] || 0);
+        return new Date(Date.UTC(dateInput[0], dateInput[1] - 1, dateInput[2], dateInput[3] || 0, dateInput[4] || 0, dateInput[5] || 0));
     }
-    return new Date(dateInput);
+    const hasTimezone = /[zZ]|[+-]\d{2}:?\d{2}$/.test(dateInput);
+    return new Date(hasTimezone ? dateInput : dateInput + 'Z');
 }
 
 async function loadMessages() {
@@ -158,7 +159,6 @@ function openChat(partnerId, partnerName) {
 <style scoped>
 .messages-wrapper {
     background-color: #f7f4ed;
-    min-height: 100vh;
     padding-bottom: 80px;
 }
 

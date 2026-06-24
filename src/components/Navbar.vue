@@ -1,14 +1,48 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuth0 } from '@auth0/auth0-vue';
 import UserMenu from './UserMenu.vue';
+import LegalMenu from './LegalMenu.vue';
 
-const { isAuthenticated } = useAuth0();
+const { isAuthenticated, user, getAccessTokenSilently } = useAuth0();
 
 const isMenuOpen = ref(false);
 const route = useRoute();
 const router = useRouter();
+
+const unreadCount = ref(0);
+
+async function loadUnreadCount() {
+  if (!isAuthenticated.value) return;
+  try {
+    const token = await getAccessTokenSilently();
+    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/messages`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const msgs = await res.json();
+      const myId = user.value?.sub;
+      unreadCount.value = msgs.filter(m => m.receiverOauthId === myId && !m.read).length;
+    }
+  } catch (_) {}
+}
+
+onMounted(() => {
+  if (isAuthenticated.value) loadUnreadCount();
+});
+
+watch(isAuthenticated, (val) => {
+  if (val) loadUnreadCount();
+});
+
+watch(() => route.path, (newPath) => {
+  if (newPath === '/messages') {
+    unreadCount.value = 0;
+  } else if (isAuthenticated.value) {
+    loadUnreadCount();
+  }
+});
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
@@ -73,13 +107,13 @@ function scrollTo(id) {
         </div>
 
         <router-link class="navbar-brand fw-bold text-dark text-decoration-none mx-0 p-0 m-0 fs-4 brand-link" to="/"
-          @click="closeMenu" :class="{ 'd-none d-md-block': showCenteredTitle }">
+          @click="closeMenu" :class="{ 'd-none d-lg-block': showCenteredTitle }">
           UniHelp
         </router-link>
       </div>
 
       <div v-if="showCenteredTitle"
-        class="position-absolute start-50 translate-middle-x text-center d-md-none navbar-center">
+        class="position-absolute start-50 translate-middle-x text-center d-lg-none navbar-center">
         <router-link class="navbar-brand fw-bold text-dark text-decoration-none mx-0 p-0 m-0 d-block brand-link-mobile"
           :to="isAuthenticated ? '/dashboard' : '/'" @click="closeMenu">UniHelp</router-link>
         <div class="fw-bold text-dark fs-4 page-title-mobile">
@@ -87,13 +121,15 @@ function scrollTo(id) {
         </div>
       </div>
       <div v-if="showCenteredTitle"
-        class="position-absolute start-50 translate-middle-x text-center d-none d-md-block navbar-center">
+        class="position-absolute start-50 translate-middle-x text-center d-none d-lg-block navbar-center">
         <div class="fw-bold fs-4 text-dark page-title-desktop">
           {{ route.path.startsWith('/moderation') ? 'Moderation' : (route.meta.title || 'Angebot') }}
         </div>
       </div>
 
-      <div class="navbar-right">
+      <div class="navbar-right d-flex align-items-center">
+        <LegalMenu v-if="isAppPage" class="me-2" />
+
         <button v-if="!isAppPage" class="navbar-toggler custom-toggler" type="button" @click="toggleMenu">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -125,7 +161,7 @@ function scrollTo(id) {
           </ul>
 
           <ul v-else-if="isAuthenticated"
-            class="navbar-nav align-items-center text-center mt-3 mt-md-0 ms-auto desktop-gap d-none d-md-flex">
+            class="navbar-nav align-items-center text-center mt-3 mt-md-0 ms-auto desktop-gap d-none d-lg-flex">
             <li class="nav-item mobile-nav-item">
               <router-link class="nav-link text-dark"
                 :class="{ 'nav-link-active': route.path === '/dashboard' || route.path === '/offers' }"
@@ -136,12 +172,17 @@ function scrollTo(id) {
                 to="/bookings">Buchungen</router-link>
             </li>
             <li class="nav-item mobile-nav-item">
-              <router-link class="nav-link text-dark" :class="{ 'nav-link-active': route.path === '/messages' }"
-                to="/messages">Nachrichten</router-link>
+              <router-link class="nav-link text-dark position-relative d-inline-flex align-items-center"
+                :class="{ 'nav-link-active': route.path === '/messages' }" to="/messages">
+                Nachrichten
+                <span v-if="unreadCount > 0" class="unread-badge badge rounded-pill bg-danger ms-2">
+                  {{ unreadCount > 9 ? '9+' : unreadCount }}
+                </span>
+              </router-link>
             </li>
           </ul>
 
-          <div class="d-flex align-items-center justify-content-center ms-lg-3 mt-3 mt-lg-0" :class="{ 'd-none d-md-flex': isAppPage }">
+          <div class="d-flex align-items-center justify-content-center ms-lg-3 mt-3 mt-lg-0" :class="{ 'd-none d-lg-flex': isAppPage }">
             <UserMenu />
           </div>
         </div>
@@ -196,6 +237,12 @@ function scrollTo(id) {
 .nav-link-active {
   color: #2b487b !important;
   font-weight: 600;
+}
+
+.unread-badge {
+  font-size: 10px;
+  padding: 3px 6px;
+  line-height: 1;
 }
 
 .custom-toggler {
